@@ -5,9 +5,6 @@ from .Models import User
 from abc import ABC, abstractmethod
 
 
-def get_user_repository(db: Session = Depends(get_db)) -> "IUserRepository":
-    return UserRepository(db)
-
 
 class IUserRepository(ABC):
     @abstractmethod
@@ -53,3 +50,6 @@ class UserRepository(IUserRepository):
         self.db.delete(user)
         self.db.commit()
         return {"message": "User deleted successfully"}
+
+def get_user_repository(db: Session = Depends(get_db)) -> "IUserRepository":
+    return UserRepository(db)

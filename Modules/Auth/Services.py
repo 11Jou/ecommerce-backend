@@ -40,11 +40,7 @@ def get_security_service() -> SecurityService:
 
 
 # ---------------- Auth Service ----------------
-def get_auth_service(
-    user_repository: IUserRepository = Depends(get_user_repository),
-    security_service: SecurityService = Depends(get_security_service),
-) -> "AuthService":
-    return AuthService(user_repository, security_service)
+
 
 
 class AuthService:
@@ -84,4 +80,10 @@ class AuthService:
 
     def delete_user(self, user_id: int) -> dict:
         return self.user_repository.delete_user(user_id)
+
+def get_auth_service(
+    user_repository: IUserRepository = Depends(get_user_repository),
+    security_service: SecurityService = Depends(get_security_service),
+) -> "AuthService":
+    return AuthService(user_repository, security_service)
 
