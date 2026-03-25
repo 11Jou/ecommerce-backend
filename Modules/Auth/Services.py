@@ -15,6 +15,7 @@ class SecurityService:
         self.secret_key = "mG/xJYdH/b3bR9K2FJqaVUTAvrie2dQxdytkDQPUfGo="
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 30
+        self.refresh_token_expire_minutes = 60 * 24 * 30 
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
@@ -25,6 +26,12 @@ class SecurityService:
     def create_access_token(self, data: dict) -> str:
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
+        to_encode.update({"exp": expire})
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+    def create_refresh_token(self, data: dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=self.refresh_token_expire_minutes)
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
 
@@ -65,10 +72,23 @@ class AuthService:
         if not user or not self.security_service.verify_password(login_user.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         access_token = self.security_service.create_access_token(data={"sub": user.email, "role": user.role.value})
-        return Token(access_token=access_token, token_type="bearer", role=user.role)
+        refresh_token = self.security_service.create_refresh_token(data={"sub": user.email, "role": user.role.value})
+        return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer", role=user.role)
 
-
-
+    def refresh_token(self, refresh_token: str) -> Token:
+        try:
+            payload = self.security_service.decode_token(refresh_token)
+            email = payload.get("sub")
+            role = payload.get("role")
+            if email is None or role is None:
+                raise HTTPException(status_code=401, detail="Invalid token")
+            user = self.get_user_by_email(email)
+            if not user or user.role.value != role:
+                raise HTTPException(status_code=401, detail="Invalid token")
+            access_token = self.security_service.create_access_token(data={"sub": user.email, "role": user.role.value})
+            return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer", role=user.role)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
 def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),

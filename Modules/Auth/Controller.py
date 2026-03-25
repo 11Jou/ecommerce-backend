@@ -28,3 +28,11 @@ def login_user_route(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> Token:
     return auth_service.login_user(login_user)
+
+
+@router.post("/refresh-token")
+def refresh_token_route(
+    data: RefreshToken,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> Token:
+    return auth_service.refresh_token(data.refresh_token)
