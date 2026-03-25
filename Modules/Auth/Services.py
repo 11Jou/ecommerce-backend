@@ -6,6 +6,7 @@ from .Repository import IUserRepository, get_user_repository
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+from .Schemas import ChangePassword
 
 
 # ---------------- Security Service ----------------
@@ -89,6 +90,14 @@ class AuthService:
             return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer", role=user.role)
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
+
+    def change_password(self, current_user: User, data: ChangePassword) -> User:
+        if not self.security_service.verify_password(data.old_password, current_user.password):
+            raise HTTPException(status_code=401, detail="Invalid password")
+        if data.new_password != data.confirm_new_password:
+            raise HTTPException(status_code=400, detail="Passwords do not match")
+        current_user.password = self.security_service.hash_password(data.new_password)
+        return self.user_repository.update_user(current_user)
 
 def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),

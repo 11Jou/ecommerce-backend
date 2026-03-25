@@ -49,3 +49,9 @@ class Token(BaseModel):
 class RefreshToken(BaseModel):
     refresh_token: str
 
+
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str
+    confirm_new_password: str
+

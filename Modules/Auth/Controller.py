@@ -36,3 +36,12 @@ def refresh_token_route(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> Token:
     return auth_service.refresh_token(data.refresh_token)
+
+
+@router.put("/change-password")
+def change_password_route(
+    data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service),):
+    auth_service.change_password(current_user, data)
+    return {"message": "Password changed successfully"}

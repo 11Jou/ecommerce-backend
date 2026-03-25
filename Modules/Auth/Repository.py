@@ -15,6 +15,9 @@ class IUserRepository(ABC):
     def create_user(self, user: User) -> User:
         pass
 
+    @abstractmethod
+    def update_user(self, user: User) -> User:
+        pass
 
 
 class UserRepository(IUserRepository):
@@ -26,6 +29,11 @@ class UserRepository(IUserRepository):
 
     def create_user(self, user: User) -> User:
         self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def update_user(self, user: User) -> User:
         self.db.commit()
         self.db.refresh(user)
         return user
