@@ -1,4 +1,4 @@
-from .Schemas import RegisterUser, UserLogin, Token, UpdateUser
+from .Schemas import RegisterUser, UserLogin, Token
 from .Models import User
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -41,8 +41,6 @@ def get_security_service() -> SecurityService:
 
 # ---------------- Auth Service ----------------
 
-
-
 class AuthService:
     def __init__(self, user_repository: IUserRepository, security_service: SecurityService):
         self.user_repository = user_repository
@@ -56,8 +54,10 @@ class AuthService:
             raise HTTPException(status_code=400, detail="Email already registered")
         if user.password != user.confirm_password:
             raise HTTPException(status_code=400, detail="Passwords do not match")
+
         hashed_password = self.security_service.hash_password(user.password)
         new_user = User(name=user.name, phone=user.phone, email=user.email, password=hashed_password)
+        
         return self.user_repository.create_user(new_user)
 
     def login_user(self, login_user: UserLogin) -> Token:
@@ -65,21 +65,10 @@ class AuthService:
         if not user or not self.security_service.verify_password(login_user.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         access_token = self.security_service.create_access_token(data={"sub": user.email, "role": user.role.value})
-        return Token(access_token=access_token, token_type="bearer")
+        return Token(access_token=access_token, token_type="bearer", role=user.role)
 
 
-    def update_user(self, update_user: UpdateUser, current_user: User) -> User:
-        if update_user.name:
-            current_user.name = update_user.name
-        if update_user.phone:
-            current_user.phone = update_user.phone
 
-        current_user.updated_at = datetime.now()
-        return self.user_repository.update_user(current_user)
-
-
-    def delete_user(self, user_id: int) -> dict:
-        return self.user_repository.delete_user(user_id)
 
 def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),

@@ -28,37 +28,3 @@ def login_user_route(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> Token:
     return auth_service.login_user(login_user)
-
-
-@router.get("/profile", response_model=ProfileResponse)
-def get_profile_route(
-    current_user: User = Depends(get_current_user),
-) -> ProfileResponse:
-    return ProfileResponse(
-        id=current_user.id,
-        name=current_user.name,
-        phone=current_user.phone,
-        email=current_user.email,
-        created_at=current_user.created_at,
-        updated_at=current_user.updated_at,
-    )
-
-
-@router.put("/profile", response_model=ProfileResponse)
-def update_profile_route(
-    update_user: UpdateUser,
-    current_user: User = Depends(get_current_user),
-    auth_service: AuthService = Depends(get_auth_service),
-) -> ProfileResponse:
-    return auth_service.update_user(update_user, current_user)
-
-
-
-@router.delete("/profile/{user_id}")
-def delete_profile_route(
-    user_id: int,
-    current_user: User = Depends(require_role([Role.ADMIN])),
-    auth_service: AuthService = Depends(get_auth_service),
-) -> dict:
-    auth_service.delete_user(user_id)
-    return {"message": "User deleted successfully"}

@@ -15,14 +15,6 @@ class IUserRepository(ABC):
     def create_user(self, user: User) -> User:
         pass
 
-    @abstractmethod
-    def update_user(self, user: User) -> User:
-        pass
-
-    @abstractmethod
-    def delete_user(self, user: User) -> User:
-        pass
-
 
 
 class UserRepository(IUserRepository):
@@ -37,19 +29,6 @@ class UserRepository(IUserRepository):
         self.db.commit()
         self.db.refresh(user)
         return user
-    
-    def update_user(self, user: User) -> User:
-        self.db.commit()
-        self.db.refresh(user)
-        return user
-    
-    def delete_user(self, user_id: int) -> User:
-        user = self.db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        self.db.delete(user)
-        self.db.commit()
-        return {"message": "User deleted successfully"}
 
 def get_user_repository(db: Session = Depends(get_db)) -> "IUserRepository":
     return UserRepository(db)

@@ -27,13 +27,6 @@ class RegisterUser(BaseModel):
         return v
 
 
-class UpdateUser(BaseModel):
-    name: Optional[str] = None
-    phone: Optional[str] = None
-
-
-
-
 class UserLogin(BaseModel):
     email: str
     password: str
@@ -47,17 +40,8 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
 
-class ProfileResponse(BaseModel):
-    id: int
-    name: str
-    phone: str
-    email: str
-    created_at: datetime
-    updated_at: datetime
-
-
-
 class Token(BaseModel):
     access_token: str
+    role: Role
     token_type: str
 
