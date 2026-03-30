@@ -34,6 +34,7 @@ class Product(Base):
 
     category = relationship("Category", back_populates="products")
     stocks = relationship("Stock", back_populates="product", cascade="all, delete-orphan")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint('price > 0', name='price_check'),
@@ -55,3 +56,14 @@ class Stock(Base):
     __table_args__ = (
         CheckConstraint('quantity >= 0', name='quantity_check'),
     )
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
+    image_url = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    product = relationship("Product", back_populates="images")

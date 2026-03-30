@@ -1,17 +1,28 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-import dotenv
-dotenv.load_dotenv()
-DATABASE = dotenv.get_key(".env","DATABASE_URL")
-engine = create_engine(DATABASE)
+from __future__ import annotations
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from typing import Generator
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+from Core.settings import get_database_url
 
 Base = declarative_base()
 
-def get_db():
+_engine = None
+_session_local = None
+
+
+def _get_engine_and_session():
+    global _engine, _session_local
+    if _engine is None:
+        _engine = create_engine(get_database_url())
+        _session_local = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    return _engine, _session_local
+
+
+def get_db() -> Generator:
+    _, SessionLocal = _get_engine_and_session()
     db = SessionLocal()
     try:
         yield db
