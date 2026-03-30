@@ -1,0 +1,1 @@
+alembic revision --autogenerate -m "add check constraint to stock"

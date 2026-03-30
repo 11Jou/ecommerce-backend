@@ -5,6 +5,8 @@ from sqlalchemy import pool
 import os
 from alembic import context
 from Modules.Auth.Models import Base
+from Modules.Stock.Models import Base as StockBase
+
 
 config = context.config
 
@@ -14,7 +16,6 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 
 
