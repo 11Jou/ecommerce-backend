@@ -1,4 +1,4 @@
-from Modules.Stock.Repository.CategoryRepository import CategoryRepository, ICategoryRepository
+from Modules.Stock.Repository.CategoryRepository import CategoryRepository, ICategoryRepository, get_category_repository
 from Modules.Stock.Models import Category
 from Modules.Stock.Schemas import *
 from fastapi import HTTPException
@@ -22,14 +22,18 @@ class CategoryService:
         return existing_category
 
     def create_category(self, category: CreateCategorySchema) -> Category:
-        new_category = Category(name=category.name)
+        new_category = Category(name=category.name, description=category.description , is_active=category.is_active)
         return self.category_repository.create_category(new_category)
 
     def update_category(self, category_id: int, category: UpdateCategorySchema) -> Category:
         existing_category = self.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
-        existing_category.name = category.name
+
+        update_data = category.model_dump(exclude_unset=True, exclude_none=True)
+        for field, value in update_data.items():
+            setattr(existing_category, field, value)
+
         return self.category_repository.update_category(existing_category)
 
     def delete_category(self, category_id: int) -> None:
@@ -41,4 +45,4 @@ class CategoryService:
 
 
 def get_category_service(db: Session = Depends(get_db)) -> CategoryService:
-    return CategoryService(CategoryRepository(db))
+    return CategoryService(category_repository=get_category_repository(db))

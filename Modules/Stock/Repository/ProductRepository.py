@@ -8,6 +8,10 @@ from fastapi import Depends
 class IProductRepository(ABC):
 
     @abstractmethod
+    def get_all_products(self) -> List[Product]:
+        pass
+
+    @abstractmethod
     def get_product_by_id(self, product_id: int) -> Product:
         pass
 
@@ -35,6 +39,9 @@ class IProductRepository(ABC):
 class ProductRepository(IProductRepository):
     def __init__(self, db: Session):
         self.db = db
+
+    def get_all_products(self) -> List[Product]:
+        return self.db.query(Product).all()
 
     def get_product_by_id(self, product_id: int) -> Product:
         return self.db.query(Product).filter(Product.id == product_id).first()

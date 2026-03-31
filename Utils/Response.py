@@ -65,7 +65,7 @@ def success_response(
     payload = ApiResponse[Any](
         success=True,
         message=message,
-        data=data,
+        data=_json_safe(data),
         error=None,
         status_code=status_code,
     )
