@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 from Modules.Stock.Models import Store
 from fastapi import Depends
-from Modules.Stock.Database import get_db
+from Core.Database import get_db
+from typing import List
 
 
 class IStoreRepository(ABC):
@@ -27,6 +28,8 @@ class StoreRepository(IStoreRepository):
     def __init__(self, db: Session):
         self.db = db
 
+    def get_all_stores(self) -> List[Store]:
+        return self.db.query(Store).all()
 
     def get_store_by_id(self, store_id: int) -> Store:
         return self.db.query(Store).filter(Store.id == store_id).first()

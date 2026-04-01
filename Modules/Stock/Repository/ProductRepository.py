@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from Modules.Stock.Models import Product
+from Modules.Stock.Models import Product, Stock
 from typing import List
 from Core.Database import get_db
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import Depends
 
 class IProductRepository(ABC):
@@ -44,10 +44,20 @@ class ProductRepository(IProductRepository):
         return self.db.query(Product).all()
 
     def get_active_products(self) -> List[Product]:
-        return self.db.query(Product).filter(Product.is_active == True).all()
+        return (
+            self.db.query(Product)
+            .options(joinedload(Product.stocks).joinedload(Stock.store))
+            .filter(Product.is_active == True)
+            .all()
+        )
 
     def get_product_by_id(self, product_id: int) -> Product:
-        return self.db.query(Product).filter(Product.id == product_id).first()
+        return (
+            self.db.query(Product)
+            .options(joinedload(Product.stocks).joinedload(Stock.store))
+            .filter(Product.id == product_id)
+            .first()
+        )
 
     def get_product_by_name(self, name: str) -> List[Product]:
         return self.db.query(Product).filter(Product.name == name).all()

@@ -1,6 +1,15 @@
+from Modules.Stock.Repository.StockRepository import *
+from Modules.Stock.Schemas import *
+from Modules.Stock.Models import Stock
+from fastapi import HTTPException
+from Core.Database import get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+
 class StockService:
 
-    def __init__(self, stock_repository: StockRepository):
+    def __init__(self, stock_repository: IStockRepository):
         self.stock_repository = stock_repository
 
     def get_stock_by_product_id(self, product_id: int) -> Stock:
@@ -27,3 +36,6 @@ class StockService:
         if not existing_stock:
             raise HTTPException(status_code=404, detail="Stock not found")
         return self.stock_repository.delete_stock(existing_stock)
+
+def get_stock_service(db: Session = Depends(get_db)) -> StockService:
+    return StockService(get_stock_repository(db))

@@ -1,6 +1,6 @@
 from typing import List
-from Modules.Stock.Repository.ProductRepository import IProductRepository, ProductRepository, get_product_repository
-from Modules.Stock.Schemas import CreateProductSchema, UpdateProductSchema
+from Modules.Stock.Repository.ProductRepository import *
+from Modules.Stock.Schemas import *
 from Modules.Stock.Models import Product
 from fastapi import HTTPException
 from Core.Database import get_db
@@ -16,9 +16,44 @@ class ProductService:
 
     def get_active_products(self) -> List[Product]:
         return self.product_repository.get_active_products()
+    
+    def _serialize_product_with_availability(self, product: Product) -> ProductWithAvailabilitySchema:
+        availability = [
+            ProductStoreAvailabilitySchema(
+                store_id=stock.store_id,
+                store_name=stock.store.name if stock.store else "",
+                quantity=stock.quantity,
+            )
+            for stock in product.stocks
+        ]
+
+        return ProductWithAvailabilitySchema(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            price=float(product.price),
+            category_id=product.category_id,
+            is_active=product.is_active,
+            created_at=product.created_at,
+            updated_at=product.updated_at,
+            availability=availability,
+        )
+
+    def get_active_products_with_availability(self) -> List[dict]:
+        products = self.product_repository.get_active_products()
+        return [
+            self._serialize_product_with_availability(product).model_dump(mode="json")
+            for product in products
+        ]
 
     def get_product_by_id(self, product_id: int) -> Product:
         return self.product_repository.get_product_by_id(product_id)
+
+    def get_product_by_id_with_availability(self, product_id: int) -> dict:
+        product = self.product_repository.get_product_by_id(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return self._serialize_product_with_availability(product).model_dump(mode="json")
 
     def get_product_by_name(self, name: str) -> List[Product]:
         return self.product_repository.get_product_by_name(name)
@@ -27,7 +62,11 @@ class ProductService:
         return self.product_repository.get_product_by_category(category_id)
 
     def create_product(self, product: CreateProductSchema) -> Product:
-        new_product = Product(name=product.name, description=product.description, price=product.price, category_id=product.category_id, is_active=product.is_active)
+        new_product = Product(name=product.name, 
+        description=product.description, 
+        price=product.price, 
+        category_id=product.category_id, 
+        is_active=product.is_active)
         return self.product_repository.create_product(new_product)
 
     def update_product(self, product_id: int, product: UpdateProductSchema) -> Product:

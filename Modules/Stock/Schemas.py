@@ -40,6 +40,24 @@ class ProductSchema(BaseModel):
     updated_at: datetime
 
 
+class ProductStoreAvailabilitySchema(BaseModel):
+    store_id: int
+    store_name: str
+    quantity: int
+
+
+class ProductWithAvailabilitySchema(BaseModel):
+    id: int
+    name: str
+    description: str
+    price: float
+    category_id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    availability: list[ProductStoreAvailabilitySchema]
+
+
 class CreateProductSchema(BaseModel):
     name: str
     description: str
@@ -60,6 +78,21 @@ class UpdateProductSchema(BaseModel):
         if self.name is None and self.description is None and self.price is None and self.category_id is None and self.is_active is None:
             raise ValueError("At least one field must be provided for update")
         return self
+
+class StoreSchema(BaseModel):
+    id: int
+    name: str
+    address: str
+    created_at: datetime
+    updated_at: datetime
+
+class CreateStoreSchema(BaseModel):
+    name: str
+    address: str
+
+class UpdateStoreSchema(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None
 
 
 class StockSchema(BaseModel):
