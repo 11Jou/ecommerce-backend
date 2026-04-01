@@ -43,6 +43,9 @@ class ProductRepository(IProductRepository):
     def get_all_products(self) -> List[Product]:
         return self.db.query(Product).all()
 
+    def get_active_products(self) -> List[Product]:
+        return self.db.query(Product).filter(Product.is_active == True).all()
+
     def get_product_by_id(self, product_id: int) -> Product:
         return self.db.query(Product).filter(Product.id == product_id).first()
 
@@ -63,13 +66,10 @@ class ProductRepository(IProductRepository):
         self.db.refresh(product)
         return product
 
-    def delete_product(self, product_id: int) -> None:
-        product = self.get_product_by_id(product_id)
-        if product:
-            self.db.delete(product)
-            self.db.commit()
-            return True
-        return False
+    def delete_product(self, product: Product) -> None:
+        self.db.delete(product)
+        self.db.commit()
+        return True
 
 def get_product_repository(db: Session = Depends(get_db)) -> IProductRepository:
     return ProductRepository(db)

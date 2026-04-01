@@ -39,13 +39,10 @@ class StockRepository(IStockRepository):
         self.db.refresh(stock)
         return stock
 
-    def delete_stock(self, stock_id: int) -> None:
-        stock = self.get_stock_by_product_id(stock_id)
-        if stock:
-            self.db.delete(stock)
-            self.db.commit()
-            return True
-        return False
+    def delete_stock(self, stock: Stock) -> None:
+        self.db.delete(stock)
+        self.db.commit()
+        return True
 
 def get_stock_repository(db: Session = Depends(get_db)) -> IStockRepository:
     return StockRepository(db)

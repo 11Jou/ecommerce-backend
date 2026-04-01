@@ -14,6 +14,9 @@ class ProductService:
     def get_all_products(self) -> List[Product]:
         return self.product_repository.get_all_products()
 
+    def get_active_products(self) -> List[Product]:
+        return self.product_repository.get_active_products()
+
     def get_product_by_id(self, product_id: int) -> Product:
         return self.product_repository.get_product_by_id(product_id)
 
@@ -35,6 +38,12 @@ class ProductService:
         for field, value in update_data.items():
             setattr(existing_product, field, value)
         return self.product_repository.update_product(existing_product)
+    
+    def delete_product(self, product_id: int) -> None:
+        existing_product = self.get_product_by_id(product_id)
+        if not existing_product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return self.product_repository.delete_product(existing_product)
 
 def get_product_service(db: Session = Depends(get_db)) -> ProductService:
     return ProductService(product_repository=get_product_repository(db))

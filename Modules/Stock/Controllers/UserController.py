@@ -35,7 +35,7 @@ def get_all_products_controller(
     current_user: User = Depends(get_current_user),
     product_service: ProductService = Depends(get_product_service)
     ) -> JSONResponse:
-    products = product_service.get_all_products()
+    products = product_service.get_active_products()
     return success_response(message="Products fetched successfully", data=products, status_code=200)
 
 

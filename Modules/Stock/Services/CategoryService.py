@@ -41,7 +41,7 @@ class CategoryService:
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
 
-        return self.category_repository.delete_category(category_id)
+        return self.category_repository.delete_category(existing_category)
 
 
 def get_category_service(db: Session = Depends(get_db)) -> CategoryService:

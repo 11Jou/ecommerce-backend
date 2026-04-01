@@ -41,17 +41,30 @@ class Product(Base):
     )
 
 
+class Store(Base):
+
+    __tablename__ = "stores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    address = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    stocks = relationship("Stock", back_populates="store", cascade="all, delete-orphan")
+
+
 class Stock(Base):
     __tablename__ = "stocks"
 
-    id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
+    store_id = Column(Integer, ForeignKey("stores.id"), primary_key=True, nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), primary_key=True, nullable=False)
     quantity = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     product = relationship("Product", back_populates="stocks")
-
+    store = relationship("Store", back_populates="stocks")
 
     __table_args__ = (
         CheckConstraint('quantity >= 0', name='quantity_check'),
