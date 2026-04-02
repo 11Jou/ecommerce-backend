@@ -94,9 +94,14 @@ class UpdateStoreSchema(BaseModel):
     name: Optional[str] = None
     address: Optional[str] = None
 
+    @model_validator(mode="after")
+    def validate_at_least_one_field(self):
+        if self.name is None and self.address is None:
+            raise ValueError("At least one field must be provided for update")
+        return self
+
 
 class StockSchema(BaseModel):
-    id: int
     store_id: int
     product_id: int
     quantity: int
@@ -110,12 +115,4 @@ class CreateStockSchema(BaseModel):
 
 
 class UpdateStockSchema(BaseModel):
-    product_id: Optional[int] = None
-    quantity: Optional[int] = None
-
-    @model_validator(mode="after")
-    def validate_at_least_one_field(self):
-        if self.product_id is None and self.quantity is None:
-            raise ValueError("At least one field must be provided for update")
-        return self
-
+    quantity: int

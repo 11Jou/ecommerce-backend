@@ -50,10 +50,12 @@ class CategoryRepository(ICategoryRepository):
         self.db.refresh(category)
         return category
 
-    def delete_category(self, category: Category) -> None:
-        self.db.delete(category)
-        self.db.commit()
-        return True
+    def delete_category(self, category_id: int) -> None:
+        category = self.get_category_by_id(category_id)
+        if category:
+            self.db.delete(category)
+            self.db.commit()
+
 
 def get_category_repository(db: Session = Depends(get_db)) -> ICategoryRepository:
     return CategoryRepository(db)

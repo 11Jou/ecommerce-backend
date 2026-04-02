@@ -9,6 +9,10 @@ from typing import List
 class IStoreRepository(ABC):
 
     @abstractmethod
+    def get_all_stores(self) -> List[Store]:
+        pass
+
+    @abstractmethod
     def get_store_by_id(self, store_id: int) -> Store:
         pass
 
