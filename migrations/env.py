@@ -10,6 +10,7 @@ from Core.Database import Base
 # Add new model modules here as you create them.
 import Modules.Auth.Models  # noqa: F401
 import Modules.Stock.Models  # noqa: F401
+import Modules.Order.Models  # noqa: F401
 
 config = context.config
 

@@ -12,21 +12,33 @@ class CategoryService:
     def __init__(self, category_repository: ICategoryRepository):
         self.category_repository = category_repository
 
-    def get_all_categories(self) -> List[Category]:
-        return self.category_repository.get_all_categories()
+    def _serialize_category(self, category: Category) -> dict:
+        return CategorySchema(
+            id=category.id,
+            name=category.name,
+            description=category.description,
+            is_active=category.is_active,
+            created_at=category.created_at,
+            updated_at=category.updated_at,
+        ).model_dump(mode="json")
 
-    def get_category_by_id(self, category_id: int) -> Category:
+    def get_all_categories(self) -> List[dict]:
+        categories = self.category_repository.get_all_categories()
+        return [self._serialize_category(category) for category in categories]
+
+    def get_category_by_id(self, category_id: int) -> dict:
         existing_category = self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
-        return existing_category
+        return self._serialize_category(existing_category)
 
-    def create_category(self, category: CreateCategorySchema) -> Category:
+    def create_category(self, category: CreateCategorySchema) -> dict:
         new_category = Category(name=category.name, description=category.description , is_active=category.is_active)
-        return self.category_repository.create_category(new_category)
+        created_category = self.category_repository.create_category(new_category)
+        return self._serialize_category(created_category)
 
-    def update_category(self, category_id: int, category: UpdateCategorySchema) -> Category:
-        existing_category = self.get_category_by_id(category_id)
+    def update_category(self, category_id: int, category: UpdateCategorySchema) -> dict:
+        existing_category = self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
 
@@ -34,10 +46,11 @@ class CategoryService:
         for field, value in update_data.items():
             setattr(existing_category, field, value)
 
-        return self.category_repository.update_category(existing_category)
+        updated_category = self.category_repository.update_category(existing_category)
+        return self._serialize_category(updated_category)
 
     def delete_category(self, category_id: int) -> None:
-        existing_category = self.get_category_by_id(category_id)
+        existing_category = self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
 
