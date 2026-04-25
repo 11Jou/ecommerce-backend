@@ -3,7 +3,7 @@
 Tech Stack
 
 * **Backend Framework:** FastApi + Pydantic + SQLALchemy
-* * **DataBase:** postgresql
+* **DataBase:** postgresql
 * **Containerization:** Docker & Docker Compose
 
 
