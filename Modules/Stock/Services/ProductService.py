@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from Modules.Stock.Repository.ProductRepository import *
 from Modules.Stock.Schemas import *
 from Modules.Stock.Mappers.ProductMapper import (
@@ -23,8 +23,8 @@ class ProductService:
         products = self.product_repository.get_active_products()
         return [to_product_dict(product) for product in products]
 
-    def get_active_products_with_availability(self) -> List[dict]:
-        products = self.product_repository.get_active_products()
+    def get_active_products_with_availability(self, name: Optional[str] = None) -> List[dict]:
+        products = self.product_repository.get_active_products(name=name)
         return [to_product_with_availability_dict(product) for product in products]
 
     def get_product_by_id(self, product_id: int) -> dict:
@@ -38,9 +38,6 @@ class ProductService:
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         return to_product_with_availability_dict(product)
-
-    def get_product_by_name(self, name: str) -> List[Product]:
-        return self.product_repository.get_product_by_name(name)
 
     def get_product_by_category(self, category_id: int) -> List[Product]:
         return self.product_repository.get_product_by_category(category_id)

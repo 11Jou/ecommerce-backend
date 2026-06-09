@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from Modules.Stock.Models import Product, Stock
-from typing import List
+from typing import List, Optional
 from Core.Database import get_db
 from sqlalchemy.orm import Session, joinedload
 from fastapi import Depends
@@ -13,10 +13,6 @@ class IProductRepository(ABC):
 
     @abstractmethod
     def get_product_by_id(self, product_id: int) -> Product:
-        pass
-
-    @abstractmethod
-    def get_product_by_name(self, name: str) -> List[Product]:
         pass
 
     def get_product_by_category(self, category_id: int) -> List[Product]:
@@ -47,16 +43,20 @@ class ProductRepository(IProductRepository):
             .all()
         )
 
-    def get_active_products(self) -> List[Product]:
-        return (
+    def get_active_products(self, name: Optional[str] = None) -> List[Product]:
+        query = (
             self.db.query(Product)
             .options(
                 joinedload(Product.category),
                 joinedload(Product.stocks).joinedload(Stock.store),
             )
             .filter(Product.is_active == True)
-            .all()
         )
+
+        if name and name.strip():
+            query = query.filter(Product.name.ilike(f"%{name.strip()}%"))
+
+        return query.all()
 
     def get_product_by_id(self, product_id: int) -> Product:
         return (
@@ -69,11 +69,16 @@ class ProductRepository(IProductRepository):
             .first()
         )
 
-    def get_product_by_name(self, name: str) -> List[Product]:
-        return self.db.query(Product).filter(Product.name == name).all()
-
     def get_product_by_category(self, category_id: int) -> List[Product]:
-        return self.db.query(Product).filter(Product.category_id == category_id).all()
+        return (
+            self.db.query(Product)
+            .options(
+                joinedload(Product.category),
+                joinedload(Product.stocks).joinedload(Stock.store),
+            )
+            .filter(Product.category_id == category_id)
+            .all()
+        )
 
     def create_product(self, product: Product) -> Product:
         self.db.add(product)
