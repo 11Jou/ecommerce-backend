@@ -3,7 +3,7 @@ from Core.Database import Base
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.schema import CheckConstraint
+from sqlalchemy.schema import CheckConstraint, UniqueConstraint
 from enum import Enum
 
 class OrderStatus(Enum):
@@ -88,6 +88,9 @@ class CartItem(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    __table_args__ = (
+        UniqueConstraint("cart_id", "product_id", "store_id", name="uix_cart_product_store"),
+    )
     
     cart = relationship("Cart", back_populates="items")
     product = relationship("Product", back_populates="cart_items")

@@ -1,13 +1,13 @@
 from datetime import datetime
 from Modules.Order.Models import OrderStatus
-from pydantic import BaseModel
+from pydantic import BaseModel, conint, Field
 from Modules.Stock.Schemas import ProductSchema
 
 
 class CreateCartItemSchema(BaseModel):
     product_id: int
     store_id: int
-    quantity: int
+    quantity: int = Field(ge=1)
 
 class CartItemSchema(BaseModel):
     id: int
@@ -17,7 +17,7 @@ class CartItemSchema(BaseModel):
     unit_price: float
 
 class UpdateCartItemSchema(BaseModel):
-    quantity: int
+    quantity: int = Field(ge=1)
 
 class CartSchema(BaseModel):
     id: int

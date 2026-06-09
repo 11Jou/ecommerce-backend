@@ -29,10 +29,7 @@ def add_item_to_cart(
     current_user: User = Depends(get_current_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
-    cart = cart_service.get_cart_by_user_id(current_user.id)
-    if not cart:
-        cart = cart_service.create_cart(current_user.id)
-
+    cart = cart_service.get_cart_or_create(current_user.id)
     cart_service.create_cart_item(cart_item, cart.id)
     updated_cart = cart_service.get_cart_by_id(cart.id)
     return success_response(

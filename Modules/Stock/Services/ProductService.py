@@ -42,6 +42,12 @@ class ProductService:
     def get_product_by_category(self, category_id: int) -> List[Product]:
         return self.product_repository.get_product_by_category(category_id)
 
+    def get_product_price_by_id(self, product_id: int) -> float:
+        product = self.product_repository.get_product_by_id(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return product.price
+
     def create_product(self, product: CreateProductSchema) -> dict:
         new_product = Product(name=product.name, 
         description=product.description, 

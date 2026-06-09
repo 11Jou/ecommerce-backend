@@ -5,6 +5,7 @@ from Modules.Order.Models import Cart, CartItem
 from fastapi import Depends, HTTPException
 from Core.Database import get_db
 from typing import List
+from sqlalchemy.exc import IntegrityError
 
 class ICartRepository(ABC):
     @abstractmethod
@@ -16,6 +17,10 @@ class ICartRepository(ABC):
         pass
 
     @abstractmethod
+    def get_cart_or_create(self, user_id: int) -> Cart:
+        pass
+
+    @abstractmethod
     def get_cart_by_user_id(self, user_id: int) -> Cart:
         pass
 
@@ -24,7 +29,7 @@ class ICartRepository(ABC):
         pass
 
     @abstractmethod
-    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, cart_id: int) -> CartItem:
+    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, store_id: int, cart_id: int) -> CartItem:
         pass
 
     @abstractmethod
@@ -66,6 +71,25 @@ class CartRepository(ICartRepository):
     def get_cart_item_by_id(self, cart_item_id: int) -> CartItem:
         return self.db.query(CartItem).filter(CartItem.id == cart_item_id).first()
 
+    def get_cart_or_create(self, user_id: int) -> Cart:
+        cart = self.get_cart_by_user_id(user_id)
+
+        if cart:
+            return cart
+        cart = Cart(user_id=user_id)
+        self.db.add(cart)
+
+        try:
+            self.db.commit()
+            self.db.refresh(cart)
+        except IntegrityError as e:
+            self.db.rollback()
+            cart = self.get_cart_by_user_id(user_id)
+        return cart
+
+
+
+
     def get_cart_by_id(self, cart_id: int) -> Cart:
         return (
             self.db.query(Cart)
@@ -82,8 +106,8 @@ class CartRepository(ICartRepository):
             .first()
         )
 
-    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, cart_id: int) -> CartItem:
-        return self.db.query(CartItem).filter(CartItem.product_id == product_id, CartItem.cart_id == cart_id).first()
+    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, store_id: int, cart_id: int) -> CartItem:
+        return self.db.query(CartItem).filter(CartItem.product_id == product_id, CartItem.store_id == store_id, CartItem.cart_id == cart_id).first()
 
     def update_cart_item(self, cart_item: CartItem) -> CartItem:
         self.db.commit()
