@@ -19,4 +19,4 @@ Tech Stack
 
 
 
-alembic revision --autogenerate -m "add check constraint to stock"
+alembic revision --autogenerate -m "primary key to cart item"

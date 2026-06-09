@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from sqlalchemy.orm import validates
 from sqlalchemy.schema import CheckConstraint
+from sqlalchemy.orm import relationship
 
 class Role(Enum):
     USER = "user"
@@ -28,3 +29,7 @@ class User(Base):
             name='check_phone_valid'
         ),
     )
+
+    addresses = relationship("Address", back_populates="user")
+    orders = relationship("Order", back_populates="user")
+    cart = relationship("Cart", back_populates="user")

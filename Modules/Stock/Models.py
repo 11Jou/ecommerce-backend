@@ -35,6 +35,8 @@ class Product(Base):
     category = relationship("Category", back_populates="products")
     stocks = relationship("Stock", back_populates="product", cascade="all, delete-orphan")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
+    order_items = relationship("OrderItem", back_populates="product")
+    cart_items = relationship("CartItem", back_populates="product")
 
     __table_args__ = (
         CheckConstraint('price > 0', name='price_check'),
@@ -52,7 +54,7 @@ class Store(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     stocks = relationship("Stock", back_populates="store", cascade="all, delete-orphan")
-
+    cart_items = relationship("CartItem", back_populates="store")
 
 class Stock(Base):
     __tablename__ = "stocks"

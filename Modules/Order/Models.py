@@ -41,6 +41,7 @@ class Order(Base):
 
     user = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")
+    items = relationship("OrderItem", back_populates="order")
 
 
 
@@ -78,13 +79,16 @@ class Cart(Base):
 class CartItem(Base):
     __tablename__ = "cart_items"
 
-    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
+    store_id = Column(Integer, ForeignKey("stores.id"), nullable=False, index=True)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-
+    
     cart = relationship("Cart", back_populates="items")
     product = relationship("Product", back_populates="cart_items")
+    store = relationship("Store", back_populates="cart_items")

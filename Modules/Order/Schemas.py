@@ -1,6 +1,28 @@
 from datetime import datetime
 from Modules.Order.Models import OrderStatus
 from pydantic import BaseModel
+from Modules.Stock.Schemas import ProductSchema
+
+
+class CreateCartItemSchema(BaseModel):
+    product_id: int
+    store_id: int
+    quantity: int
+
+class CartItemSchema(BaseModel):
+    id: int
+    product: ProductSchema
+    quantity: int
+    store_id: int
+    unit_price: float
+
+class UpdateCartItemSchema(BaseModel):
+    quantity: int
+
+class CartSchema(BaseModel):
+    id: int
+    user_id: int
+    items: list[CartItemSchema]
 
 class CreateOrderSchema(BaseModel):
     user_id: int

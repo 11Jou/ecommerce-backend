@@ -27,6 +27,15 @@ class StockService:
         stocks = self.stock_repository.get_stocks_by_store_id(store_id)
         return [to_stock_dict(stock) for stock in stocks]
 
+
+    def check_stock_availability(self, product_id: int, store_id: int, quantity: int) -> bool:
+        stock = self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
+        if not stock:
+            raise HTTPException(status_code=404, detail="Stock not found")
+        if stock.quantity < quantity:
+            raise HTTPException(status_code=400, detail="Insufficient stock")
+        return True
+
     def get_stock_by_product_id_and_store_id(self, product_id: int, store_id: int) -> dict:
         stock = self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
         if not stock:
