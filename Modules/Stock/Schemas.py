@@ -34,7 +34,7 @@ class ProductSchema(BaseModel):
     name: str
     description: str
     price: float
-    category_id: int
+    category: CategorySchema
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -51,7 +51,7 @@ class ProductWithAvailabilitySchema(BaseModel):
     name: str
     description: str
     price: float
-    category_id: int
+    category: CategorySchema
     is_active: bool
     created_at: datetime
     updated_at: datetime

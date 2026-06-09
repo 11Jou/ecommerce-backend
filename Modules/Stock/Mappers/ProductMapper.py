@@ -1,4 +1,5 @@
 from Modules.Stock.Models import Product
+from Modules.Stock.Mappers.CategoryMapper import to_category_schema
 from Modules.Stock.Schemas import (
     ProductSchema,
     ProductStoreAvailabilitySchema,
@@ -12,7 +13,7 @@ def to_product_schema(product: Product) -> ProductSchema:
         name=product.name,
         description=product.description,
         price=float(product.price),
-        category_id=product.category_id,
+        category=to_category_schema(product.category),
         is_active=product.is_active,
         created_at=product.created_at,
         updated_at=product.updated_at,
@@ -34,7 +35,7 @@ def to_product_with_availability_schema(product: Product) -> ProductWithAvailabi
         name=product.name,
         description=product.description,
         price=float(product.price),
-        category_id=product.category_id,
+        category=to_category_schema(product.category),
         is_active=product.is_active,
         created_at=product.created_at,
         updated_at=product.updated_at,

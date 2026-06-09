@@ -41,12 +41,19 @@ class ProductRepository(IProductRepository):
         self.db = db
 
     def get_all_products(self) -> List[Product]:
-        return self.db.query(Product).all()
+        return (
+            self.db.query(Product)
+            .options(joinedload(Product.category))
+            .all()
+        )
 
     def get_active_products(self) -> List[Product]:
         return (
             self.db.query(Product)
-            .options(joinedload(Product.stocks).joinedload(Stock.store))
+            .options(
+                joinedload(Product.category),
+                joinedload(Product.stocks).joinedload(Stock.store),
+            )
             .filter(Product.is_active == True)
             .all()
         )
@@ -54,7 +61,10 @@ class ProductRepository(IProductRepository):
     def get_product_by_id(self, product_id: int) -> Product:
         return (
             self.db.query(Product)
-            .options(joinedload(Product.stocks).joinedload(Stock.store))
+            .options(
+                joinedload(Product.category),
+                joinedload(Product.stocks).joinedload(Stock.store),
+            )
             .filter(Product.id == product_id)
             .first()
         )
