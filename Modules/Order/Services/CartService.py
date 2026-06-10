@@ -25,6 +25,9 @@ class CartService:
             raise HTTPException(status_code=404, detail="Cart not found")
         return cart
 
+    def get_cart_or_create(self, user_id: int) -> Cart:
+        return self.cart_repository.get_cart_or_create(user_id)
+
     def create_cart(self, user_id: int) -> Cart:
         new_cart = Cart(user_id=user_id)
         created_cart = self.cart_repository.create_cart(new_cart)
