@@ -14,7 +14,6 @@ class CartItemSchema(BaseModel):
     product: ProductSchema
     quantity: int
     store_id: int
-    unit_price: float
 
 class UpdateCartItemSchema(BaseModel):
     quantity: int = Field(ge=1)

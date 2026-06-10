@@ -9,7 +9,6 @@ def to_cart_item_schema(cart_item: CartItem) -> CartItemSchema:
         id=cart_item.id,
         product=to_product_schema(cart_item.product),
         quantity=cart_item.quantity,
-        unit_price=float(cart_item.unit_price),
         store_id=cart_item.store_id,
     )
 

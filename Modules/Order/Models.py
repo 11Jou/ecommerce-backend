@@ -73,7 +73,6 @@ class CartItem(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
     store_id = Column(Integer, ForeignKey("stores.id"), nullable=False, index=True)
     quantity = Column(Integer, nullable=False)
-    unit_price = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -30,11 +30,11 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    def create_order_item(self, order_item: OrderItem) -> OrderItem:
+    def create_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
         pass
 
     @abstractmethod
-    def create_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
+    def stage_order_with_items(self, order: Order, order_items: List[OrderItem]) -> Order:
         pass
 
     @abstractmethod
@@ -42,20 +42,9 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    def get_order_items_by_order_id(self, order_id: int) -> List[OrderItem]:
-        pass
-
-    @abstractmethod
     def get_all_order_items(self) -> List[OrderItem]:
         pass
 
-    @abstractmethod
-    def update_order_item(self, order_item: OrderItem) -> OrderItem:
-        pass
-
-    @abstractmethod
-    def delete_order_item(self, order_item: OrderItem) -> None:
-        pass
 
 
 class OrderRepository(IOrderRepository):
@@ -90,30 +79,18 @@ class OrderRepository(IOrderRepository):
             self.db.refresh(order_item)
         return order_items
 
-    def create_order_item(self, order_item: OrderItem) -> OrderItem:
-        self.db.add(order_item)
-        self.db.commit()
-        self.db.refresh(order_item)
-        return order_item
+    def stage_order_with_items(self, order: Order, order_items: List[OrderItem]) -> Order:
+        self.db.add(order)
+        self.db.flush()
+
+        for order_item in order_items:
+            order_item.order_id = order.id
+
+        self.db.add_all(order_items)
+        return order
 
     def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
         return self.db.query(OrderItem).filter(OrderItem.id == order_item_id).first()
-
-    def get_order_items_by_order_id(self, order_id: int) -> List[OrderItem]:
-        return self.db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
-
-    def get_all_order_items(self) -> List[OrderItem]:
-        return self.db.query(OrderItem).all()
-
-    def update_order_item(self, order_item: OrderItem) -> OrderItem:
-        self.db.commit()
-        self.db.refresh(order_item)
-        return order_item
-
-    def delete_order_item(self, order_item: OrderItem) -> None:
-        self.db.delete(order_item)
-        self.db.commit()
-
 
 def get_order_repository(db: Session = Depends(get_db)) -> IOrderRepository:
     return OrderRepository(db)

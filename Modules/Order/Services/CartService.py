@@ -62,7 +62,6 @@ class CartService:
             product_id=cart_item.product_id,
             store_id=cart_item.store_id,
             quantity=cart_item.quantity,
-            unit_price=product_price
         )
 
         return self.cart_repository.create_cart_item(new_item)
@@ -79,8 +78,6 @@ class CartService:
     def clear_cart(self, cart_id: int) -> None:
         return self.cart_repository.clear_cart(cart_id)
 
-    def get_all_items_in_cart(self, cart_id: int) -> List[CartItem]:
-        return self.cart_repository.get_all_items_in_cart(cart_id)
 
 
 def get_cart_service(db: Session = Depends(get_db)) -> CartService:

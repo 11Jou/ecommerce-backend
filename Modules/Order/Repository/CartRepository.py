@@ -53,6 +53,10 @@ class ICartRepository(ABC):
         pass
 
     @abstractmethod
+    def clear_cart_without_commit(self, cart_id: int) -> None:
+        pass
+
+    @abstractmethod
     def get_all_items_in_cart(self, cart_id: int) -> List[CartItem]:
         pass
 
@@ -93,7 +97,11 @@ class CartRepository(ICartRepository):
     def get_cart_by_id(self, cart_id: int) -> Cart:
         return (
             self.db.query(Cart)
-            .options(joinedload(Cart.items))
+            .options(
+                joinedload(Cart.items)
+                .joinedload(CartItem.product)
+                .joinedload(CartItem.store)
+            )
             .filter(Cart.id == cart_id)
             .first()
         )
@@ -101,7 +109,11 @@ class CartRepository(ICartRepository):
     def get_cart_by_user_id(self, user_id: int) -> Cart:
         return (
             self.db.query(Cart)
-            .options(joinedload(Cart.items))
+            .options(
+                joinedload(Cart.items)
+                .joinedload(CartItem.product)
+                .joinedload(CartItem.store)
+            )
             .filter(Cart.user_id == user_id)
             .first()
         )
@@ -141,15 +153,15 @@ class CartRepository(ICartRepository):
         self.db.refresh(cart_item)
         return cart_item
 
-    def clear_cart(self, cart_id: int) -> None:
+    def clear_cart_without_commit(self, cart_id: int) -> None:
         cart_items = self.db.query(CartItem).filter(CartItem.cart_id == cart_id).all()
         for cart_item in cart_items:
             self.db.delete(cart_item)
+
+    def clear_cart(self, cart_id: int) -> None:
+        self.clear_cart_without_commit(cart_id)
         self.db.commit()
 
-
-    def get_all_items_in_cart(self, cart_id: int) -> List[CartItem]:
-        return self.db.query(CartItem).filter(CartItem.cart_id == cart_id).all()
 
 
 def get_cart_repository(db: Session = Depends(get_db)) -> CartRepository:
