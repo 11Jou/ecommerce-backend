@@ -25,15 +25,24 @@ class CartSchema(BaseModel):
     items: list[CartItemSchema]
 
 class CreateOrderSchema(BaseModel):
-    user_id: int
     address_id: int
-    status: OrderStatus
+
+
+class OrderItemSchema(BaseModel):
+    id: int
+    order_id: int
+    product: ProductSchema
+    store_id: int
+    quantity: int
+    unit_price: float
 
 class OrderSchema(BaseModel):
     id: int
     user_id: int
     address_id: int
     status: OrderStatus
+    total_amount: float
+    items: list[OrderItemSchema]
     created_at: datetime
     updated_at: datetime
 
@@ -41,14 +50,6 @@ class OrderSchema(BaseModel):
 class CreateOrderItemSchema(BaseModel):
     order_id: int
     product_id: int
+    store_id: int
     quantity: int
-    price: float
-
-class OrderItemSchema(BaseModel):
-    id: int
-    order_id: int
-    product_id: int
-    quantity: int
-    price: float
-    created_at: datetime
-    updated_at: datetime
+    unit_price: float

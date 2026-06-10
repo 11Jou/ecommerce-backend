@@ -6,6 +6,8 @@ from Modules.Auth.Models import User
 from Utils.Response import success_response
 from Modules.Order.Schemas import *
 from Modules.Order.Mappers.CartMapper import to_cart_dict
+from Modules.Order.Services.OrderService import OrderService, get_order_service
+from Modules.Order.Mappers.OrderMapper import to_order_dict
 
 router = APIRouter(prefix="/order", tags=["order"])
 
@@ -83,5 +85,31 @@ def clear_cart(
     return success_response(
         message="Cart cleared successfully",
         data=to_cart_dict(updated_cart),
+        status_code=200,
+    )
+
+
+@router.get("/orders")
+def get_orders(
+    current_user: User = Depends(get_current_user),
+    order_service: OrderService = Depends(get_order_service),
+) -> JSONResponse:
+    orders = order_service.get_orders_by_user_id(current_user.id)
+    return success_response(
+        message="Orders retrieved successfully",
+        data=[to_order_dict(order) for order in orders],
+        status_code=200,
+    )
+
+@router.post("/orders")
+def create_order(
+    create_order_schema: CreateOrderSchema,
+    current_user: User = Depends(get_current_user),
+    order_service: OrderService = Depends(get_order_service),
+) -> JSONResponse:
+    order = order_service.complete_order(current_user.id, create_order_schema)
+    return success_response(
+        message="Order created successfully",
+        data=to_order_dict(order),
         status_code=200,
     )

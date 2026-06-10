@@ -4,68 +4,119 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from Core.Database import get_db
-from Modules.Order.Mappers.OrderItemMapper import to_order_item_dict
-from Modules.Order.Mappers.OrderMapper import to_order_dict
-from Modules.Order.Models import CartItem, Order, OrderItem
+from Modules.Order.Models import Cart, CartItem, Order, OrderItem, OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
+from Modules.Order.Schemas import CreateOrderSchema
+from Modules.Order.Services.CartService import CartService, get_cart_service
+from Modules.Stock.Services.ProductService import ProductService, get_product_service
+from Modules.Stock.Services.StockService import StockService, get_stock_service
 
 
 class OrderService:
-    def __init__(self, order_repository: IOrderRepository):
+    def __init__(
+        self,
+        order_repository: IOrderRepository,
+        cart_service: CartService,
+        product_service: ProductService,
+        stock_service: StockService,
+    ):
         self.order_repository = order_repository
+        self.cart_service = cart_service
+        self.product_service = product_service
+        self.stock_service = stock_service
+
+    def validate_cart(self, cart: Cart) -> None:
+        if not cart or not cart.items:
+            raise HTTPException(status_code=400, detail="Cart is empty")
+
+        for item in cart.items:
+            if item.quantity <= 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Quantity must be greater than 0 for product {item.product_id}",
+                )
+
+            if float(item.unit_price) <= 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid unit price for product {item.product_id}",
+                )
+
+            product = self.product_service.get_product_by_id(item.product_id)
+            if not product.get("is_active"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Product {item.product_id} is not active",
+                )
+
+            self.stock_service.check_stock_availability(
+                item.product_id,
+                item.store_id,
+                item.quantity,
+            )
+
+    def compute_item_total_price(self, unit_price, quantity: int) -> float:
+        return round(float(unit_price) * quantity, 2)
+
+    def compute_order_total_amount(self, cart_items: List[CartItem]) -> float:
+        return round(
+            sum(
+                self.compute_item_total_price(item.unit_price, item.quantity)
+                for item in cart_items
+            ),
+            2,
+        )
 
     def create_order(self, order: Order) -> Order:
         return self.order_repository.create_order(order)
 
-    def get_order_by_id(self, order_id: int) -> Order:
-        existing_order = self.order_repository.get_order_by_id(order_id)
-        if not existing_order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        return to_order_dict(existing_order)
-
-    def get_all_orders(self) -> List[Order]:
-        orders = self.order_repository.get_all_orders()
-        return [to_order_dict(order) for order in orders]
-
-    def get_all_orders_by_user_id(self, user_id: int) -> List[Order]:
-        orders = self.order_repository.get_all_orders_by_user_id(user_id)
-        return orders
-
-    def update_order(self, order: Order) -> Order:
-        existing_order = self.order_repository.get_order_by_id(order.id)
-        if not existing_order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        updated_order = self.order_repository.update_order(order)
-        return to_order_dict(updated_order)
-
-    def delete_order(self, order_id: int) -> None:
-        existing_order = self.order_repository.get_order_by_id(order_id)
-        if not existing_order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        self.order_repository.delete_order(existing_order)
-
     def create_order_items(self, cart_items: List[CartItem], order_id: int) -> List[OrderItem]:
-        order_items = []
-        for item in cart_items:
-            new_order_item = OrderItem(
+        order_items = [
+            OrderItem(
                 order_id=order_id,
-                product_id=item.product_id,
-                quantity=item.quantity,
-                unit_price=item.unit_price,
+                product_id=cart_item.product_id,
+                store_id=cart_item.store_id,
+                quantity=cart_item.quantity,
+                unit_price=cart_item.unit_price,
+                total_price=self.compute_item_total_price(
+                    cart_item.unit_price,
+                    cart_item.quantity,
+                ),
             )
-            order_items.append(new_order_item)
+            for cart_item in cart_items
+        ]
         return self.order_repository.create_order_items(order_items)
 
-    def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
-        existing_order_item = self.order_repository.get_order_item_by_id(order_item_id)
-        if not existing_order_item:
-            raise HTTPException(status_code=404, detail="Order item not found")
-        return existing_order_item
+    def complete_order(self, user_id: int, order_data: CreateOrderSchema) -> Order:
+        cart = self.cart_service.get_cart_by_user_id(user_id)
+        if not cart:
+            raise HTTPException(status_code=404, detail="Cart not found")
 
-    def get_order_items_by_order_id(self, order_id: int) -> List[OrderItem]:
-        order_items = self.order_repository.get_order_items_by_order_id(order_id)
-        return order_items
+        self.validate_cart(cart)
+
+        total_amount = self.compute_order_total_amount(cart.items)
+
+        new_order = self.create_order(
+            Order(
+                user_id=user_id,
+                status=OrderStatus.PENDING,
+                address_id=order_data.address_id,
+                total_amount=total_amount,
+            )
+        )
+        self.create_order_items(cart.items, new_order.id)
+        self.cart_service.clear_cart(cart.id)
+        return new_order
+
+
+    def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+        return self.order_repository.get_orders_by_user_id(user_id)
 
 
 def get_order_service(db: Session = Depends(get_db)) -> OrderService:
-    return OrderService(get_order_repository(db))
+    return OrderService(
+        order_repository=get_order_repository(db),
+        cart_service=get_cart_service(db),
+        product_service=get_product_service(db),
+        stock_service=get_stock_service(db),
+    )

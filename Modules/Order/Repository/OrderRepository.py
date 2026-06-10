@@ -14,7 +14,7 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    def get_order_by_id(self, order_id: int) -> Order:
+    def get_orders_by_user_id(self, user_id: int) -> List[Order]:
         pass
 
     @abstractmethod
@@ -68,8 +68,8 @@ class OrderRepository(IOrderRepository):
         self.db.refresh(order)
         return order
 
-    def get_order_by_id(self, order_id: int) -> Order:
-        return self.db.query(Order).filter(Order.id == order_id).first()
+    def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+        return self.db.query(Order).filter(Order.user_id == user_id).all()
 
     def get_all_orders(self) -> List[Order]:
         return self.db.query(Order).all()

@@ -19,4 +19,4 @@ Tech Stack
 
 
 
-alembic revision --autogenerate -m "primary key to cart item"
+alembic revision --autogenerate -m "store id key to order item"

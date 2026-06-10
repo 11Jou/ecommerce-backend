@@ -5,6 +5,7 @@ from Modules.Auth.Controller import router as AuthRouter
 from Modules.Stock.Controllers import UserRouter as StockUserRouter, AdminRouter as StockAdminRouter
 from Modules.UserProfile.Controller import router as UserProfileRouter
 from Modules.Order.Controllers import OrderUserRouter
+from Modules.Adresses.Controller import router as AdressesRouter
 from Utils.Response import failed_response
 
 
@@ -19,10 +20,11 @@ def _http_message(detail: object) -> str:
 app = FastAPI()
 
 app.include_router(AuthRouter)
+app.include_router(AdressesRouter)
 app.include_router(UserProfileRouter)
 app.include_router(StockUserRouter)
-app.include_router(StockAdminRouter)
 app.include_router(OrderUserRouter)
+app.include_router(StockAdminRouter)
 
 
 @app.exception_handler(HTTPException)
