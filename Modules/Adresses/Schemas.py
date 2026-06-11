@@ -18,7 +18,6 @@ class UpdateAddressSchema(BaseModel):
 
 class AddressSchema(BaseModel):
     id: int
-    user_id: int
     city: str
     street: str
     building: str

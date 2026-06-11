@@ -113,3 +113,16 @@ def create_order(
         data=to_order_dict(order),
         status_code=200,
     )
+
+@router.get("/orders/{order_id}")
+def get_order(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    order_service: OrderService = Depends(get_order_service),
+) -> JSONResponse:
+    order = order_service.get_order_by_id(order_id, current_user.id)
+    return success_response(
+        message="Order retrieved successfully",
+        data=to_order_dict(order),
+        status_code=200,
+    )

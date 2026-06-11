@@ -44,6 +44,7 @@ class OrderItem(Base):
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
+    store = relationship("Store", back_populates="order_items")
 
     __table_args__ = (
         UniqueConstraint("order_id", "product_id", "store_id", name="uix_order_product_store"),

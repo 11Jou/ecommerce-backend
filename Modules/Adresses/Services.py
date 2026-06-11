@@ -28,6 +28,14 @@ class AdressesService:
     def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
         return self.address_repository.get_addresses_by_user_id(user_id)
 
+
+    def validate_user_address(self, user_id: int, address_id: int) -> None:
+        address = self.address_repository.get_address_by_id(address_id)
+        if not address:
+            raise HTTPException(status_code=404, detail="Address not found")
+        if address.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Address does not belong to user")
+
     def update_address(self, address_id: int, update_address_schema: UpdateAddressSchema) -> Address:
         address = self.address_repository.get_address_by_id(address_id)
         if not address:

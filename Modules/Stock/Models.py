@@ -55,6 +55,7 @@ class Store(Base):
 
     stocks = relationship("Stock", back_populates="store", cascade="all, delete-orphan")
     cart_items = relationship("CartItem", back_populates="store")
+    order_items = relationship("OrderItem", back_populates="store")
 
 class Stock(Base):
     __tablename__ = "stocks"
