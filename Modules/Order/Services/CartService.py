@@ -75,6 +75,9 @@ class CartService:
         self.stock_service.check_stock_availability(cart_item.product_id, cart_item.store_id, quantity)
         return self.cart_repository.update_item_quantity(cart_item_id, quantity)
 
+    def clear_cart_without_commit(self, cart_id: int) -> None:
+        return self.cart_repository.clear(cart_id)
+
     def clear_cart(self, cart_id: int) -> None:
         return self.cart_repository.clear_cart(cart_id)
 

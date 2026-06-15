@@ -68,6 +68,10 @@ class Cart(Base):
     user = relationship("User", back_populates="cart")
     items = relationship("CartItem", back_populates="cart")
 
+    @property
+    def total_price(self) -> float:
+        return round(sum(item.total_price for item in self.items), 2)
+
 
 class CartItem(Base):
     __tablename__ = "cart_items"
@@ -87,3 +91,7 @@ class CartItem(Base):
     cart = relationship("Cart", back_populates="items")
     product = relationship("Product", back_populates="cart_items")
     store = relationship("Store", back_populates="cart_items")
+
+    @property
+    def total_price(self) -> float:
+        return round(float(self.product.price) * self.quantity, 2)
