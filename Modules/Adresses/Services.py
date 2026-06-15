@@ -3,14 +3,16 @@ from sqlalchemy.orm import Session
 from Modules.Adresses.Models import Address
 from Modules.Adresses.Repository import IAddressRepository, get_address_repository
 from Modules.Adresses.Schemas import CreateAddressSchema, UpdateAddressSchema
+from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Core.Database import get_db
 from fastapi import HTTPException
 from fastapi import Depends
 
 class AdressesService:
 
-    def __init__(self, address_repository: IAddressRepository):
+    def __init__(self, address_repository: IAddressRepository, order_repository: IOrderRepository):
         self.address_repository = address_repository
+        self.order_repository = order_repository
 
     def create_address(self, user_id: int, create_address_schema: CreateAddressSchema) -> Address:
         address = Address(
@@ -47,9 +49,12 @@ class AdressesService:
         return self.address_repository.update_address(address)
 
     def delete_address(self, user_id: int, address_id: int) -> None:
+        order_address = self.order_repository.check_order_by_address_id(address_id)
+        if order_address:
+            raise HTTPException(status_code=400, detail="Address is associated with an order")
         address = self.address_repository.get_address_by_id(address_id)
         self.validate_user_address(user_id, address)
-        return self.address_repository.delete_address(address)
+        self.address_repository.delete_address(address)
 
 def get_adresses_service(db: Session = Depends(get_db)) -> AdressesService:
-    return AdressesService(get_address_repository(db))
+    return AdressesService(get_address_repository(db), get_order_repository(db))

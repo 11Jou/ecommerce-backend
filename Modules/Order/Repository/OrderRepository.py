@@ -22,6 +22,10 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
+    def check_order_by_address_id(self, address_id: int) -> Order | None:
+        pass
+
+    @abstractmethod
     def get_all_orders(self) -> List[Order]:
         pass
 
@@ -84,6 +88,9 @@ class OrderRepository(IOrderRepository):
             .filter(Order.id == order_id, Order.user_id == user_id)
             .first()
         )
+
+    def check_order_by_address_id(self, address_id: int) -> Order | None:
+        return self.db.query(Order).filter(Order.address_id == address_id).first()
 
     def get_all_orders(self) -> List[Order]:
         return self.db.query(Order).all()

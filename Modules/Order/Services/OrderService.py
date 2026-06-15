@@ -60,9 +60,7 @@ class OrderService:
     def complete_order(self, user_id: int, order_data: CreateOrderSchema) -> Order:
 
         cart = self.cart_service.get_cart_by_user_id(user_id)
-        address = self.adresses_service.get_address_by_id(order_data.address_id)
-
-        self.adresses_service.validate_user_address(user_id, address)
+        address = self.adresses_service.get_address_by_id(user_id, order_data.address_id)
         self.cart_service.validate_cart(cart)
 
         total_amount = self.compute_order_total_amount(cart.items)
@@ -96,6 +94,9 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
         return order
+
+    def check_order_by_address_id(self, address_id: int) -> Order | None:
+        return self.order_repository.check_order_by_address_id(address_id)
 
 
 
