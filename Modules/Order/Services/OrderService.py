@@ -8,11 +8,6 @@ from Modules.Order.Repository.CartRepository import ICartRepository, get_cart_re
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Order.Schemas import CreateOrderSchema
 from Modules.Order.Services.CartService import CartService, get_cart_service
-from Modules.Stock.Services.ProductService import ProductService, get_product_service
-from Modules.Stock.Services.StockService import StockService, get_stock_service
-
-
-
 
 
 class OrderService:
@@ -22,16 +17,12 @@ class OrderService:
         order_repository: IOrderRepository,
         cart_repository: ICartRepository,
         cart_service: CartService,
-        product_service: ProductService,
-        stock_service: StockService,
         adresses_service: AdressesService,):
 
         self.db = db
         self.order_repository = order_repository
         self.cart_repository = cart_repository
         self.cart_service = cart_service
-        self.product_service = product_service
-        self.stock_service = stock_service
         self.adresses_service = adresses_service
 
 
@@ -95,9 +86,6 @@ class OrderService:
             raise HTTPException(status_code=404, detail="Order not found")
         return order
 
-    def check_order_by_address_id(self, address_id: int) -> Order | None:
-        return self.order_repository.check_order_by_address_id(address_id)
-
 
 
 def get_order_service(db: Session = Depends(get_db)) -> OrderService:
@@ -106,8 +94,6 @@ def get_order_service(db: Session = Depends(get_db)) -> OrderService:
         order_repository=get_order_repository(db),
         cart_repository=get_cart_repository(db),
         cart_service=get_cart_service(db),
-        product_service=get_product_service(db),
-        stock_service=get_stock_service(db),
         adresses_service=get_adresses_service(db),
     )
 
