@@ -6,17 +6,5 @@ Tech Stack
 * **DataBase:** postgresql
 * **Containerization:** Docker & Docker Compose
 
+alembic revision --autogenerate -m "edit order status"
 
-
-
-
-
-
-
-
-
-
-
-
-
-alembic revision --autogenerate -m "store id key to order item"

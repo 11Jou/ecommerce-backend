@@ -38,7 +38,7 @@ class AdressesService:
         return self.address_repository.get_addresses_by_user_id(user_id)
 
 
-    def update_address(self, address_id: int, update_address_schema: UpdateAddressSchema) -> Address:
+    def update_address(self, user_id: int, address_id: int, update_address_schema: UpdateAddressSchema) -> Address:
         address = self.address_repository.get_address_by_id(address_id)
         self.validate_user_address(user_id, address)
         update_data = update_address_schema.model_dump(exclude_unset=True, exclude_none=True)
@@ -46,7 +46,7 @@ class AdressesService:
             setattr(address, field, value)
         return self.address_repository.update_address(address)
 
-    def delete_address(self, address_id: int) -> None:
+    def delete_address(self, user_id: int, address_id: int) -> None:
         address = self.address_repository.get_address_by_id(address_id)
         self.validate_user_address(user_id, address)
         return self.address_repository.delete_address(address)

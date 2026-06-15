@@ -79,6 +79,15 @@ class CartService:
         return self.cart_repository.clear_cart(cart_id)
 
 
+    def validate_cart(self, cart: Cart) -> None:
+        if not cart or not cart.items:
+            raise HTTPException(status_code=400, detail="Cart is empty")
+        for item in cart.items:
+            if item.quantity <= 0:
+                raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
+            if not item.product.is_active:
+                raise HTTPException(status_code=400, detail="Product is not active")
+
 
 def get_cart_service(db: Session = Depends(get_db)) -> CartService:
     return CartService(get_cart_repository(db), get_product_service(db), get_stock_service(db))

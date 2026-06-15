@@ -61,7 +61,7 @@ def update_address(
     current_user: User = Depends(get_current_user),
     adresses_service: AdressesService = Depends(get_adresses_service),
 ) -> JSONResponse:
-    address = adresses_service.update_address(address_id, update_address_schema)
+    address = adresses_service.update_address(current_user.id, address_id, update_address_schema)
     return success_response(
         message="Address updated successfully",
         data=to_address_dict(address),
@@ -76,7 +76,7 @@ def delete_address(
     current_user: User = Depends(get_current_user),
     adresses_service: AdressesService = Depends(get_adresses_service),
 ) -> JSONResponse:
-    adresses_service.delete_address(address_id)
+    adresses_service.delete_address(current_user.id, address_id)
     return success_response(
         message="Address deleted successfully",
         status_code=200,

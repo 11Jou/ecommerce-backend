@@ -35,27 +35,6 @@ class OrderService:
         self.adresses_service = adresses_service
 
 
-    def validate_cart(self, cart: Cart) -> None:
-        if not cart or not cart.items:
-            raise HTTPException(status_code=400, detail="Cart is empty")
-
-        for item in cart.items:
-            if item.quantity <= 0:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Quantity must be greater than 0 for product {item.product_id}",)
-
-            if not item.product.is_active:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Product {item.product.name} is not active",)
-
-            self.stock_service.check_stock_availability(
-                item.product.id,
-                item.store_id,
-                item.quantity,)
-
-
 
     def compute_item_total_price(self, unit_price, quantity: int) -> float:
         return round(float(unit_price) * quantity, 2)
@@ -84,20 +63,15 @@ class OrderService:
         address = self.adresses_service.get_address_by_id(order_data.address_id)
 
         self.adresses_service.validate_user_address(user_id, address)
-        self.validate_cart(cart)
+        self.cart_service.validate_cart(cart)
 
         total_amount = self.compute_order_total_amount(cart.items)
-        order = Order(
-            user_id=user_id,
-            status=OrderStatus.PENDING,
-            address_id=address.id,
-            total_amount=total_amount,)
+        order = Order(user_id=user_id, status=OrderStatus.PENDING_PAYMENT, address_id=address.id, total_amount=total_amount)
 
         order_items = self._build_order_items_from_cart(cart.items)
 
         try:
             new_order = self.order_repository.create_order(order)
-
             self.order_repository.add_order_items(order_items)
             self.cart_repository.clear(cart.id)
             self.db.commit()

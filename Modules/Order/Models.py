@@ -8,10 +8,13 @@ from Modules.Adresses.Models import Address
 from enum import Enum
 
 class OrderStatus(Enum):
-    PENDING = "pending"
-    CONFIRMED = "confirmed"
+    PENDING_PAYMENT = "pending_payment"
+    PENDING_SHIPMENT = "pending_shipment"
+    SHIPPED = "shipped"
     DELIVERED = "delivered"
     CANCELLED = "cancelled"
+    RETURNED = "returned"
+    COMPLETED = "completed"
 
 
 class Order(Base):
@@ -20,7 +23,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=False, index=True)
-    status = Column(SQlEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
+    status = Column(SQlEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING_PAYMENT)
     total_amount = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
