@@ -1,29 +1,14 @@
 from typing import List
-
-
-
 from fastapi import Depends, HTTPException
-
 from sqlalchemy.orm import Session
-
-
-
 from Core.Database import get_db
-
 from Modules.Adresses.Services import AdressesService, get_adresses_service
-
 from Modules.Order.Models import Cart, CartItem, Order, OrderItem, OrderStatus
-
 from Modules.Order.Repository.CartRepository import ICartRepository, get_cart_repository
-
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
-
 from Modules.Order.Schemas import CreateOrderSchema
-
 from Modules.Order.Services.CartService import CartService, get_cart_service
-
 from Modules.Stock.Services.ProductService import ProductService, get_product_service
-
 from Modules.Stock.Services.StockService import StockService, get_stock_service
 
 
@@ -78,10 +63,7 @@ class OrderService:
 
 
     def compute_order_total_amount(self, cart_items: List[CartItem]) -> float:
-        return round(
-            sum(
-                self.compute_item_total_price(item.product.price, item.quantity)
-                for item in cart_items),2,)
+        return round(sum(self.compute_item_total_price(item.product.price, item.quantity) for item in cart_items), 2)
 
 
     def _build_order_items_from_cart(self, cart_items: List[CartItem]) -> List[OrderItem]:
@@ -91,10 +73,7 @@ class OrderService:
                 store_id=cart_item.store.id,
                 quantity=cart_item.quantity,
                 unit_price=cart_item.product.price,
-                total_price=self.compute_item_total_price(
-                    cart_item.product.price,
-                    cart_item.quantity,
-                ),)
+                total_price=self.compute_item_total_price(cart_item.product.price, cart_item.quantity),)
             for cart_item in cart_items]
 
 
@@ -102,17 +81,16 @@ class OrderService:
     def complete_order(self, user_id: int, order_data: CreateOrderSchema) -> Order:
 
         cart = self.cart_service.get_cart_by_user_id(user_id)
-        self.adresses_service.validate_user_address(user_id, order_data.address_id)
-        if not cart:
-            raise HTTPException(status_code=404, detail="Cart not found")
+        address = self.adresses_service.get_address_by_id(order_data.address_id)
 
+        self.adresses_service.validate_user_address(user_id, address)
         self.validate_cart(cart)
 
         total_amount = self.compute_order_total_amount(cart.items)
         order = Order(
             user_id=user_id,
             status=OrderStatus.PENDING,
-            address_id=order_data.address_id,
+            address_id=address.id,
             total_amount=total_amount,)
 
         order_items = self._build_order_items_from_cart(cart.items)

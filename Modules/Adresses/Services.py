@@ -22,24 +22,25 @@ class AdressesService:
         )
         return self.address_repository.create_address(address)
 
-    def get_address_by_id(self, address_id: int) -> Address:
-        return self.address_repository.get_address_by_id(address_id)
-
-    def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
-        return self.address_repository.get_addresses_by_user_id(user_id)
-
-
-    def validate_user_address(self, user_id: int, address_id: int) -> None:
-        address = self.address_repository.get_address_by_id(address_id)
+    def validate_user_address(self, user_id: int, address: Address) -> None:
         if not address:
             raise HTTPException(status_code=404, detail="Address not found")
         if address.user_id != user_id:
             raise HTTPException(status_code=403, detail="Address does not belong to user")
 
+    def get_address_by_id(self, user_id: int, address_id: int) -> Address:
+        address = self.address_repository.get_address_by_id(address_id)
+
+        self.validate_user_address(user_id, address)
+        return address
+
+    def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
+        return self.address_repository.get_addresses_by_user_id(user_id)
+
+
     def update_address(self, address_id: int, update_address_schema: UpdateAddressSchema) -> Address:
         address = self.address_repository.get_address_by_id(address_id)
-        if not address:
-            raise HTTPException(status_code=404, detail="Address not found")
+        self.validate_user_address(user_id, address)
         update_data = update_address_schema.model_dump(exclude_unset=True, exclude_none=True)
         for field, value in update_data.items():
             setattr(address, field, value)
@@ -47,8 +48,7 @@ class AdressesService:
 
     def delete_address(self, address_id: int) -> None:
         address = self.address_repository.get_address_by_id(address_id)
-        if not address:
-            raise HTTPException(status_code=404, detail="Address not found")
+        self.validate_user_address(user_id, address)
         return self.address_repository.delete_address(address)
 
 def get_adresses_service(db: Session = Depends(get_db)) -> AdressesService:

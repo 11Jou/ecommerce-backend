@@ -30,7 +30,13 @@ def get_address(
     current_user: User = Depends(get_current_user),
     adresses_service: AdressesService = Depends(get_adresses_service),
 ) -> JSONResponse:
-    address = adresses_service.get_address_by_id(address_id)
+    address = adresses_service.get_address_by_id(current_user.id, address_id)
+    return success_response(
+        message="Address retrieved successfully",
+        data=to_address_dict(address),
+        status_code=200,
+    )
+
 
 
 
