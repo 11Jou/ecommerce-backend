@@ -32,8 +32,6 @@ class AdressesService:
 
     def get_address_by_id(self, user_id: int, address_id: int) -> Address:
         address = self.address_repository.get_address_by_id(address_id)
-
-        self.validate_user_address(user_id, address)
         return address
 
     def get_addresses_by_user_id(self, user_id: int) -> List[Address]:

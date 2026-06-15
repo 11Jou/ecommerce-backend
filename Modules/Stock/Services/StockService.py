@@ -2,7 +2,6 @@ from typing import List
 
 from Modules.Stock.Repository.StockRepository import IStockRepository, get_stock_repository
 from Modules.Stock.Schemas import CreateStockSchema, UpdateStockSchema
-from Modules.Stock.Mappers.StockMapper import to_stock_dict
 from Modules.Stock.Models import Stock
 from fastapi import HTTPException
 from Core.Database import get_db
@@ -15,17 +14,17 @@ class StockService:
     def __init__(self, stock_repository: IStockRepository):
         self.stock_repository = stock_repository
 
-    def get_all_stocks(self) -> List[dict]:
+    def get_all_stocks(self) -> List[Stock]:
         stocks = self.stock_repository.get_all_stocks()
-        return [to_stock_dict(stock) for stock in stocks]
+        return stocks
 
-    def get_stocks_by_product_id(self, product_id: int) -> List[dict]:
+    def get_stocks_by_product_id(self, product_id: int) -> List[Stock]:
         stocks = self.stock_repository.get_stocks_by_product_id(product_id)
-        return [to_stock_dict(stock) for stock in stocks]
+        return stocks
 
-    def get_stocks_by_store_id(self, store_id: int) -> List[dict]:
+    def get_stocks_by_store_id(self, store_id: int) -> List[Stock]:
         stocks = self.stock_repository.get_stocks_by_store_id(store_id)
-        return [to_stock_dict(stock) for stock in stocks]
+        return stocks
 
 
     def check_stock_availability(self, product_id: int, store_id: int, quantity: int) -> bool:
@@ -36,13 +35,13 @@ class StockService:
             raise HTTPException(status_code=400, detail="Insufficient stock")
         return True
 
-    def get_stock_by_product_id_and_store_id(self, product_id: int, store_id: int) -> dict:
+    def get_stock_by_product_id_and_store_id(self, product_id: int, store_id: int) -> Stock:
         stock = self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
         if not stock:
             raise HTTPException(status_code=404, detail="Stock not found")
-        return to_stock_dict(stock)
+        return stock
 
-    def create_stock(self, data: CreateStockSchema) -> dict:
+    def create_stock(self, data: CreateStockSchema) -> Stock:
         existing = self.stock_repository.get_stock_by_product_id_and_store_id(data.product_id, data.store_id)
         if existing:
             raise HTTPException(
@@ -55,15 +54,15 @@ class StockService:
             quantity=data.quantity,
         )
         created_stock = self.stock_repository.create_stock(new_stock)
-        return to_stock_dict(created_stock)
+        return created_stock
 
-    def update_stock(self, store_id: int, product_id: int, data: UpdateStockSchema) -> dict:
+    def update_stock(self, store_id: int, product_id: int, data: UpdateStockSchema) -> Stock:
         existing = self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
         if not existing:
             raise HTTPException(status_code=404, detail="Stock not found")
         existing.quantity = data.quantity
         updated_stock = self.stock_repository.update_stock(existing)
-        return to_stock_dict(updated_stock)
+        return updated_stock
 
     def delete_stock(self, store_id: int, product_id: int) -> None:
         existing = self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)

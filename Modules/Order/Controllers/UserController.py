@@ -107,7 +107,7 @@ def create_order(
     current_user: User = Depends(get_current_user),
     order_service: OrderService = Depends(get_order_service),
 ) -> JSONResponse:
-    order = order_service.complete_order(current_user.id, create_order_schema)
+    order = order_service.place_order(current_user.id, create_order_schema)
     return success_response(
         message="Order created successfully",
         data=to_order_dict(order),

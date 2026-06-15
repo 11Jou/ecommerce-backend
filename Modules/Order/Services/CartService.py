@@ -36,7 +36,7 @@ class CartService:
     def create_cart_item(self, cart_item: CreateCartItemSchema, cart_id: int) -> CartItem:
         product = self.product_service.get_product_by_id(cart_item.product_id)
 
-        if not product.get("is_active"):
+        if not product.is_active:
             raise HTTPException(status_code=400, detail="Product is not active")
 
         existing_item = self.cart_repository.get_cart_item_by_product_id_and_cart_id(
@@ -55,7 +55,7 @@ class CartService:
             )
         self.stock_service.check_stock_availability(cart_item.product_id, cart_item.store_id, cart_item.quantity)
 
-        product_price = product.get("price")
+        product_price = product.price
 
         new_item = CartItem(
             cart_id=cart_id,

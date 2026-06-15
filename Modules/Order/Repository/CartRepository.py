@@ -89,8 +89,6 @@ class CartRepository(ICartRepository):
         return cart
 
 
-
-
     def get_cart_by_id(self, cart_id: int) -> Cart:
         return (
             self.db.query(Cart)

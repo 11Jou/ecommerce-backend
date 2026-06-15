@@ -15,47 +15,40 @@ class ProductService:
     def __init__(self, product_repository: IProductRepository):
         self.product_repository = product_repository
 
-    def get_all_products(self) -> List[dict]:
+    def get_all_products(self) -> List[Product]:
         products = self.product_repository.get_all_products()
-        return [to_product_dict(product) for product in products]
+        return products
 
-    def get_active_products(self) -> List[dict]:
-        products = self.product_repository.get_active_products()
-        return [to_product_dict(product) for product in products]
 
-    def get_active_products_with_availability(self, name: Optional[str] = None) -> List[dict]:
+    def get_active_products_with_availability(self, name: Optional[str] = None) -> List[Product]:
         products = self.product_repository.get_active_products(name=name)
-        return [to_product_with_availability_dict(product) for product in products]
+        return products
 
     def get_product_by_id(self, product_id: int) -> dict:
         product = self.product_repository.get_product_by_id(product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        return to_product_with_availability_dict(product)
+        return product
 
-    def get_product_by_id_with_availability(self, product_id: int) -> dict:
+    def get_product_by_id_with_availability(self, product_id: int) -> Product:
         product = self.product_repository.get_product_by_id(product_id)
+
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        return to_product_with_availability_dict(product)
+
+        return product
 
     def get_product_by_category(self, category_id: int) -> List[Product]:
         return self.product_repository.get_product_by_category(category_id)
 
-    def get_product_price_by_id(self, product_id: int) -> float:
-        product = self.product_repository.get_product_by_id(product_id)
-        if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-        return product.price
-
-    def create_product(self, product: CreateProductSchema) -> dict:
+    def create_product(self, product: CreateProductSchema) -> Product:
         new_product = Product(name=product.name, 
         description=product.description, 
         price=product.price, 
         category_id=product.category_id, 
         is_active=product.is_active)
         created_product = self.product_repository.create_product(new_product)
-        return to_product_dict(created_product)
+        return created_product
 
     def update_product(self, product_id: int, product: UpdateProductSchema) -> dict:
         existing_product = self.product_repository.get_product_by_id(product_id)
@@ -65,7 +58,7 @@ class ProductService:
         for field, value in update_data.items():
             setattr(existing_product, field, value)
         updated_product = self.product_repository.update_product(existing_product)
-        return to_product_dict(updated_product)
+        return updated_product
     
     def delete_product(self, product_id: int) -> None:
         existing_product = self.product_repository.get_product_by_id(product_id)

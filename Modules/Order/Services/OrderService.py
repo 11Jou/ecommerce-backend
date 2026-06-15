@@ -35,16 +35,16 @@ class OrderService:
 
 
 
-    def complete_order(self, user_id: int, order_data: CreateOrderSchema) -> Order:
+    def place_order(self, user_id: int, order_data: CreateOrderSchema) -> Order:
 
         cart = self.cart_service.get_cart_by_user_id(user_id)
         address = self.adresses_service.get_address_by_id(user_id, order_data.address_id)
+
+
+        self.adresses_service.validate_user_address(user_id, address)
         self.cart_service.validate_cart(cart)
 
-        order = Order(user_id=user_id, 
-        status=OrderStatus.PENDING_PAYMENT, 
-        address_id=address.id, 
-        total_amount=cart.total_price)
+        order = Order(user_id=user_id, status=OrderStatus.PENDING_PAYMENT, address_id=address.id, total_amount=cart.total_price)
 
         order_items = self._build_order_items_from_cart(cart.items)
 
