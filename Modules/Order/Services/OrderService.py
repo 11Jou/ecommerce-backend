@@ -51,7 +51,10 @@ class OrderService:
         self.addresses_service.validate_user_address(user_id, address)
         self.cart_service.validate_cart(cart)
 
-        order = Order(user_id=user_id, status=OrderStatus.PENDING_PAYMENT, address_id=address.id, total_amount=cart.total_price)
+        order = Order(user_id=user_id, 
+        status=OrderStatus.PENDING_PAYMENT, 
+        address_id=address.id, 
+        total_amount=cart.total_price)
 
         order_items = self._build_order_items_from_cart(cart.items)
 
@@ -59,16 +62,18 @@ class OrderService:
 
         try:
             new_order = self.order_repository.create_order(order)
+            for item in order_items:
+                item.order_id = new_order.id
             self.order_repository.add_order_items(order_items)
 
             for item in order_items:
                 self.stock_service.reserve_stock(item.product_id, item.store_id, item.quantity)
 
-            payment = handler.process(new_order, order_data)
-            payment.order_id = new_order.id
+            payment = handler.process(new_order)
+            
             self.payment_repository.add_payment(payment)
-
             self.cart_service.clear_cart_without_commit(cart.id)
+
             self.db.commit()
             self.db.refresh(new_order)
 

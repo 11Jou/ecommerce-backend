@@ -6,6 +6,7 @@ from Modules.Stock.Controllers import UserRouter as StockUserRouter, AdminRouter
 from Modules.UserProfile.Controller import router as UserProfileRouter
 from Modules.Order.Controllers.User import router as OrderUserRouter
 from Modules.Addresses.Controller import router as AddressesRouter
+from Modules.Payment.Controller import router as PaymentRouter
 from Utils.Response import failed_response
 
 
@@ -24,6 +25,7 @@ app.include_router(AddressesRouter)
 app.include_router(UserProfileRouter)
 app.include_router(StockUserRouter)
 app.include_router(OrderUserRouter)
+app.include_router(PaymentRouter)
 app.include_router(StockAdminRouter)
 
 

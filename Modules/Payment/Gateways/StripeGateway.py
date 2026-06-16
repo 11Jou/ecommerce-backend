@@ -1,4 +1,4 @@
-from Modules.Order.Schemas import CardDetailsSchema
+from Modules.Payment.Schemas import CardDetailsSchema
 from Modules.Payment.Gateways.Base import IOnlinePaymentGateway, PaymentResult
 
 

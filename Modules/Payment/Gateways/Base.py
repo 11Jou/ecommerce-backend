@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-from Modules.Order.Schemas import CardDetailsSchema
+from Modules.Payment.Schemas import CardDetailsSchema
 
 
 @dataclass

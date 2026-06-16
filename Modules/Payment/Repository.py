@@ -21,6 +21,10 @@ class IPaymentRepository(ABC):
         pass
 
     @abstractmethod
+    def get_payment_by_order_id(self, order_id: int) -> Payment:
+        pass
+
+    @abstractmethod
     def update_payment(self, payment: Payment) -> Payment:
         pass
 
@@ -50,6 +54,9 @@ class PaymentRepository(IPaymentRepository):
 
     def get_payment_by_id(self, payment_id: int) -> Payment:
         return self.db.query(Payment).filter(Payment.id == payment_id).first()
+
+    def get_payment_by_order_id(self, order_id: int) -> Payment:
+        return self.db.query(Payment).filter(Payment.order_id == order_id).first()
 
     def update_payment(self, payment: Payment) -> Payment:
         self.db.commit()
