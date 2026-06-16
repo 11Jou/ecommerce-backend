@@ -90,24 +90,26 @@ class CartRepository(ICartRepository):
 
 
     def get_cart_by_id(self, cart_id: int) -> Cart:
+        items_loader = joinedload(Cart.items)
+        product_loader = items_loader.joinedload(CartItem.product)
+        store_loader = items_loader.joinedload(CartItem.store)
         return (
             self.db.query(Cart)
             .options(
-                joinedload(Cart.items)
-                .joinedload(CartItem.product)
-                .joinedload(CartItem.store)
+                items_loader, product_loader, store_loader
             )
             .filter(Cart.id == cart_id)
             .first()
         )
 
     def get_cart_by_user_id(self, user_id: int) -> Cart:
+        items_loader = joinedload(Cart.items)
+        product_loader = items_loader.joinedload(CartItem.product)
+        store_loader = items_loader.joinedload(CartItem.store)
         return (
             self.db.query(Cart)
             .options(
-                joinedload(Cart.items)
-                .joinedload(CartItem.product)
-                .joinedload(CartItem.store)
+                items_loader, product_loader, store_loader
             )
             .filter(Cart.user_id == user_id)
             .first()

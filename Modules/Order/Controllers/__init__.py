@@ -1,1 +1,1 @@
-from .UserController import router as OrderUserRouter
+from .User import router as UserRouter

@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from Modules.Auth.Controller import router as AuthRouter
 from Modules.Stock.Controllers import UserRouter as StockUserRouter, AdminRouter as StockAdminRouter
 from Modules.UserProfile.Controller import router as UserProfileRouter
-from Modules.Order.Controllers import OrderUserRouter
+from Modules.Order.Controllers.User import router as OrderUserRouter
 from Modules.Adresses.Controller import router as AdressesRouter
 from Utils.Response import failed_response
 
