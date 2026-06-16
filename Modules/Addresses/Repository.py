@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from sqlalchemy.orm import Session
-from Modules.Adresses.Models import Address
+from Modules.Addresses.Models import Address
 from Core.Database import get_db
 from fastapi import Depends
 

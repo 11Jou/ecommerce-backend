@@ -1,5 +1,5 @@
-from Modules.Adresses.Models import Address
-from Modules.Adresses.Schemas import AddressSchema
+from Modules.Addresses.Models import Address
+from Modules.Addresses.Schemas import AddressSchema
 
 
 def to_address_schema(address: Address) -> AddressSchema:

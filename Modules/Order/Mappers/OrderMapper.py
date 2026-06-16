@@ -1,7 +1,7 @@
 from Modules.Order.Models import Order
 from Modules.Order.Schemas import OrderSchema
 from Modules.Order.Mappers.OrderItemMapper import to_order_item_dict
-from Modules.Adresses.Mapper import to_address_dict
+from Modules.Addresses.Mapper import to_address_dict
 
 def to_order_schema(order: Order) -> OrderSchema:
     return OrderSchema(

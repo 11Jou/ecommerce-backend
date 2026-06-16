@@ -1,14 +1,14 @@
 from typing import List
 from sqlalchemy.orm import Session
-from Modules.Adresses.Models import Address
-from Modules.Adresses.Repository import IAddressRepository, get_address_repository
-from Modules.Adresses.Schemas import CreateAddressSchema, UpdateAddressSchema
+from Modules.Addresses.Models import Address
+from Modules.Addresses.Repository import IAddressRepository, get_address_repository
+from Modules.Addresses.Schemas import CreateAddressSchema, UpdateAddressSchema
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Core.Database import get_db
 from fastapi import HTTPException
 from fastapi import Depends
 
-class AdressesService:
+class AddressesService:
 
     def __init__(self, address_repository: IAddressRepository, order_repository: IOrderRepository):
         self.address_repository = address_repository
@@ -48,5 +48,5 @@ class AdressesService:
 
 
 
-def get_adresses_service(db: Session = Depends(get_db)) -> AdressesService:
-    return AdressesService(get_address_repository(db), get_order_repository(db))
+def get_addresses_service(db: Session = Depends(get_db)) -> AddressesService:
+    return AddressesService(get_address_repository(db), get_order_repository(db))

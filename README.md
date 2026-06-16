@@ -6,5 +6,5 @@ Tech Stack
 * **DataBase:** postgresql
 * **Containerization:** Docker & Docker Compose
 
-alembic revision --autogenerate -m "edit order status"
+alembic revision --autogenerate -m "payment table"
 

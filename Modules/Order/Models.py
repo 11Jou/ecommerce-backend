@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.schema import CheckConstraint, UniqueConstraint
-from Modules.Adresses.Models import Address
+from Modules.Addresses.Models import Address
 from enum import Enum
 
 class OrderStatus(Enum):
@@ -31,6 +31,7 @@ class Order(Base):
     user = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
+    payments = relationship("Payment", back_populates="order")
 
 
 

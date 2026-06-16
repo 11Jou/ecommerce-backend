@@ -1,8 +1,10 @@
 from datetime import datetime
+from typing import Optional
 from Modules.Order.Models import OrderStatus
-from pydantic import BaseModel, conint, Field
+from pydantic import BaseModel, conint, Field, model_validator
 from Modules.Stock.Schemas import ProductSchema, StoreSchema
-from Modules.Adresses.Schemas import AddressSchema
+from Modules.Addresses.Schemas import AddressSchema
+from Modules.Payment.Models import PaymentMethod, OnlineProvider
 
 
 class CreateCartItemSchema(BaseModel):
@@ -24,8 +26,30 @@ class CartSchema(BaseModel):
     user_id: int
     items: list[CartItemSchema]
 
+class CardDetailsSchema(BaseModel):
+    card_number: str
+    cvc: str
+
+
 class CreateOrderSchema(BaseModel):
+    payment_method: PaymentMethod
     address_id: int
+    online_provider: Optional[OnlineProvider] = None
+    card_details: Optional[CardDetailsSchema] = None
+
+    @model_validator(mode="after")
+    def validate_payment_method(self):
+        if self.payment_method == PaymentMethod.ONLINE_PAYMENT:
+            if self.online_provider is None or self.card_details is None:
+                raise ValueError(
+                    "online_provider and card_details are required for online payment"
+                )
+        else:
+            if self.online_provider is not None or self.card_details is not None:
+                raise ValueError(
+                    "online_provider and card_details must be omitted for this payment method"
+                )
+        return self
 
 
 class OrderItemSchema(BaseModel):
