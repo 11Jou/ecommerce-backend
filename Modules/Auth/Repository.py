@@ -1,43 +1,46 @@
-from sqlalchemy.orm import Session
-from fastapi import Depends
-from Core.Database import get_db
-from .Models import User
 from abc import ABC, abstractmethod
 
+from fastapi import Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from Core.Database import get_db
+from .Models import User
 
 
 class IUserRepository(ABC):
     @abstractmethod
-    def get_user_by_email(self, email: str) -> User | None:
+    async def get_user_by_email(self, email: str) -> User | None:
         pass
 
     @abstractmethod
-    def create_user(self, user: User) -> User:
+    async def create_user(self, user: User) -> User:
         pass
 
     @abstractmethod
-    def update_user(self, user: User) -> User:
+    async def update_user(self, user: User) -> User:
         pass
 
 
 class UserRepository(IUserRepository):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def get_user_by_email(self, email: str) -> User | None:
-        return self.db.query(User).filter(User.email == email).first()
+    async def get_user_by_email(self, email: str) -> User | None:
+        result = await self.db.execute(select(User).where(User.email == email))
+        return result.scalars().first()
 
-    def create_user(self, user: User) -> User:
+    async def create_user(self, user: User) -> User:
         self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
+        await self.db.commit()
+        await self.db.refresh(user)
         return user
 
-    def update_user(self, user: User) -> User:
-        self.db.commit()
-        self.db.refresh(user)
+    async def update_user(self, user: User) -> User:
+        await self.db.commit()
+        await self.db.refresh(user)
         return user
 
-def get_user_repository(db: Session = Depends(get_db)) -> "IUserRepository":
+
+def get_user_repository(db: AsyncSession = Depends(get_db)) -> IUserRepository:
     return UserRepository(db)

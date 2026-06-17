@@ -1,36 +1,36 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from Modules.Addresses.Services import AddressesService, get_addresses_service
+
+from Modules.Addresses.Mapper import to_address_dict
 from Modules.Addresses.Schemas import CreateAddressSchema, UpdateAddressSchema
+from Modules.Addresses.Services import AddressesService, get_addresses_service
 from Modules.Auth.CheckAuth import get_current_user
 from Modules.Auth.Models import User
 from Utils.Response import success_response
-from Modules.Addresses.Mapper import to_address_schema, to_address_dict
-
 
 router = APIRouter(prefix="/addresses", tags=["addresses"])
 
 
-
 @router.get("/")
-def get_addresses(
+async def get_addresses(
     current_user: User = Depends(get_current_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
-    addresses = addresses_service.get_addresses_by_user_id(current_user.id)
+    addresses = await addresses_service.get_addresses_by_user_id(current_user.id)
     return success_response(
         message="Addresses retrieved successfully",
         data=[to_address_dict(address) for address in addresses],
         status_code=200,
     )
 
+
 @router.get("/{address_id}")
-def get_address(
+async def get_address(
     address_id: int,
     current_user: User = Depends(get_current_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
-    address = addresses_service.get_address_by_id(current_user.id, address_id)
+    address = await addresses_service.get_address_by_id(current_user.id, address_id)
     return success_response(
         message="Address retrieved successfully",
         data=to_address_dict(address),
@@ -38,15 +38,13 @@ def get_address(
     )
 
 
-
-
 @router.post("/")
-def create_address(
+async def create_address(
     create_address_schema: CreateAddressSchema,
     current_user: User = Depends(get_current_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
-    address = addresses_service.create_address(current_user.id, create_address_schema)
+    address = await addresses_service.create_address(current_user.id, create_address_schema)
     return success_response(
         message="Address created successfully",
         data=to_address_dict(address),
@@ -55,13 +53,15 @@ def create_address(
 
 
 @router.put("/{address_id}")
-def update_address(
+async def update_address(
     address_id: int,
     update_address_schema: UpdateAddressSchema,
     current_user: User = Depends(get_current_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
-    address = addresses_service.update_address(current_user.id, address_id, update_address_schema)
+    address = await addresses_service.update_address(
+        current_user.id, address_id, update_address_schema
+    )
     return success_response(
         message="Address updated successfully",
         data=to_address_dict(address),

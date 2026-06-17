@@ -1,75 +1,80 @@
 from abc import ABC, abstractmethod
 from typing import List
-from sqlalchemy.orm import Session
+
 from fastapi import Depends
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from Core.Database import get_db
 from Modules.Payment.Models import Payment
 
 
 class IPaymentRepository(ABC):
-
     @abstractmethod
-    def create_payment(self, payment: Payment) -> Payment:
+    async def create_payment(self, payment: Payment) -> Payment:
         pass
 
     @abstractmethod
-    def add_payment(self, payment: Payment) -> Payment:
+    async def add_payment(self, payment: Payment) -> Payment:
         pass
 
     @abstractmethod
-    def get_payment_by_id(self, payment_id: int) -> Payment:
+    async def get_payment_by_id(self, payment_id: int) -> Payment:
         pass
 
     @abstractmethod
-    def get_payment_by_order_id(self, order_id: int) -> Payment:
+    async def get_payment_by_order_id(self, order_id: int) -> Payment:
         pass
 
     @abstractmethod
-    def update_payment(self, payment: Payment) -> Payment:
+    async def update_payment(self, payment: Payment) -> Payment:
         pass
 
     @abstractmethod
-    def delete_payment(self, payment_id: int) -> None:
+    async def delete_payment(self, payment_id: int) -> None:
         pass
 
     @abstractmethod
-    def get_all_payments(self) -> List[Payment]:
+    async def get_all_payments(self) -> List[Payment]:
         pass
 
 
 class PaymentRepository(IPaymentRepository):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def create_payment(self, payment: Payment) -> Payment:
+    async def create_payment(self, payment: Payment) -> Payment:
         self.db.add(payment)
-        self.db.commit()
-        self.db.refresh(payment)
+        await self.db.commit()
+        await self.db.refresh(payment)
         return payment
 
-    def add_payment(self, payment: Payment) -> Payment:
+    async def add_payment(self, payment: Payment) -> Payment:
         self.db.add(payment)
-        self.db.flush()
+        await self.db.flush()
         return payment
 
-    def get_payment_by_id(self, payment_id: int) -> Payment:
-        return self.db.query(Payment).filter(Payment.id == payment_id).first()
+    async def get_payment_by_id(self, payment_id: int) -> Payment:
+        result = await self.db.execute(select(Payment).where(Payment.id == payment_id))
+        return result.scalars().first()
 
-    def get_payment_by_order_id(self, order_id: int) -> Payment:
-        return self.db.query(Payment).filter(Payment.order_id == order_id).first()
+    async def get_payment_by_order_id(self, order_id: int) -> Payment:
+        result = await self.db.execute(select(Payment).where(Payment.order_id == order_id))
+        return result.scalars().first()
 
-    def update_payment(self, payment: Payment) -> Payment:
-        self.db.commit()
-        self.db.refresh(payment)
+    async def update_payment(self, payment: Payment) -> Payment:
+        await self.db.commit()
+        await self.db.refresh(payment)
         return payment
 
-    def delete_payment(self, payment_id: int) -> None:
-        self.db.query(Payment).filter(Payment.id == payment_id).delete()
-        self.db.commit()
+    async def delete_payment(self, payment_id: int) -> None:
+        await self.db.execute(delete(Payment).where(Payment.id == payment_id))
+        await self.db.commit()
 
-    def get_all_payments(self) -> List[Payment]:
-        return self.db.query(Payment).all()
+    async def get_all_payments(self) -> List[Payment]:
+        result = await self.db.execute(select(Payment))
+        return list(result.scalars().all())
 
 
-def get_payment_repository(db: Session = Depends(get_db)) -> IPaymentRepository:
+def get_payment_repository(db: AsyncSession = Depends(get_db)) -> IPaymentRepository:
     return PaymentRepository(db)

@@ -1,7 +1,8 @@
 from fastapi import Depends
-from .Repository import IUserProfileRepository, get_user_profile_repository
-from .Schemas import UserProfileResponse, UpdateUserProfile
+
 from Modules.Auth.Models import User
+from .Repository import IUserProfileRepository, get_user_profile_repository
+from .Schemas import UpdateUserProfile, UserProfileResponse
 
 
 class UserProfileService:
@@ -18,8 +19,12 @@ class UserProfileService:
             updated_at=current_user.updated_at,
         )
 
-    def update_current_user_profile(self, current_user: User, user_profile: UpdateUserProfile) -> UserProfileResponse:
-        updated_user_profile = self.user_profile_repository.update_user_profile(current_user, user_profile)
+    async def update_current_user_profile(
+        self, current_user: User, user_profile: UpdateUserProfile
+    ) -> UserProfileResponse:
+        updated_user_profile = await self.user_profile_repository.update_user_profile(
+            current_user, user_profile
+        )
         return UserProfileResponse(
             id=updated_user_profile.id,
             name=updated_user_profile.name,
@@ -30,5 +35,7 @@ class UserProfileService:
         )
 
 
-def get_user_profile_service(user_profile_repository: IUserProfileRepository = Depends(get_user_profile_repository)) -> UserProfileService:
+def get_user_profile_service(
+    user_profile_repository: IUserProfileRepository = Depends(get_user_profile_repository),
+) -> UserProfileService:
     return UserProfileService(user_profile_repository)

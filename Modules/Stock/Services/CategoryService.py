@@ -1,34 +1,40 @@
-from Modules.Stock.Repository.CategoryRepository import CategoryRepository, ICategoryRepository, get_category_repository
-from Modules.Stock.Models import Category
-from Modules.Stock.Schemas import *
-from fastapi import HTTPException
 from typing import List
+
+from fastapi import Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from Core.Database import get_db
-from sqlalchemy.orm import Session
-from fastapi import Depends
+from Modules.Stock.Models import Category
+from Modules.Stock.Repository.CategoryRepository import (
+    ICategoryRepository,
+    get_category_repository,
+)
+from Modules.Stock.Schemas import CreateCategorySchema, UpdateCategorySchema
 
 
 class CategoryService:
     def __init__(self, category_repository: ICategoryRepository):
         self.category_repository = category_repository
 
-    def get_all_categories(self) -> List[Category]:
-        categories = self.category_repository.get_all_categories()
-        return categories
+    async def get_all_categories(self) -> List[Category]:
+        return await self.category_repository.get_all_categories()
 
-    def get_category_by_id(self, category_id: int) -> Category:
-        existing_category = self.category_repository.get_category_by_id(category_id)
+    async def get_category_by_id(self, category_id: int) -> Category:
+        existing_category = await self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
         return existing_category
 
-    def create_category(self, category: CreateCategorySchema) -> Category:
-        new_category = Category(name=category.name, description=category.description , is_active=category.is_active)
-        created_category = self.category_repository.create_category(new_category)
-        return created_category
+    async def create_category(self, category: CreateCategorySchema) -> Category:
+        new_category = Category(
+            name=category.name,
+            description=category.description,
+            is_active=category.is_active,
+        )
+        return await self.category_repository.create_category(new_category)
 
-    def update_category(self, category_id: int, category: UpdateCategorySchema) -> Category:
-        existing_category = self.category_repository.get_category_by_id(category_id)
+    async def update_category(self, category_id: int, category: UpdateCategorySchema) -> Category:
+        existing_category = await self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
 
@@ -36,16 +42,15 @@ class CategoryService:
         for field, value in update_data.items():
             setattr(existing_category, field, value)
 
-        updated_category = self.category_repository.update_category(existing_category)
-        return updated_category
+        return await self.category_repository.update_category(existing_category)
 
-    def delete_category(self, category_id: int) -> None:
-        existing_category = self.category_repository.get_category_by_id(category_id)
+    async def delete_category(self, category_id: int) -> None:
+        existing_category = await self.category_repository.get_category_by_id(category_id)
         if not existing_category:
             raise HTTPException(status_code=404, detail="Category not found")
 
-        self.category_repository.delete_category(category_id)
+        await self.category_repository.delete_category(category_id)
 
 
-def get_category_service(db: Session = Depends(get_db)) -> CategoryService:
+def get_category_service(db: AsyncSession = Depends(get_db)) -> CategoryService:
     return CategoryService(category_repository=get_category_repository(db))

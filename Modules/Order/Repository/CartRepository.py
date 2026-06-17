@@ -1,79 +1,84 @@
 from abc import ABC, abstractmethod
-
-from sqlalchemy.orm import Session, joinedload
-from Modules.Order.Models import Cart, CartItem
-from fastapi import Depends, HTTPException
-from Core.Database import get_db
 from typing import List
+
+from fastapi import Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
+from Core.Database import get_db
+from Modules.Order.Models import Cart, CartItem
+
 
 class ICartRepository(ABC):
     @abstractmethod
-    def create_cart(self, cart: Cart) -> Cart:
+    async def create_cart(self, cart: Cart) -> Cart:
         pass
 
     @abstractmethod
-    def get_cart_by_id(self, cart_id: int) -> Cart:
+    async def get_cart_by_id(self, cart_id: int) -> Cart:
         pass
 
     @abstractmethod
-    def get_cart_or_create(self, user_id: int) -> Cart:
+    async def get_cart_or_create(self, user_id: int) -> Cart:
         pass
 
     @abstractmethod
-    def get_cart_by_user_id(self, user_id: int) -> Cart:
+    async def get_cart_by_user_id(self, user_id: int) -> Cart:
         pass
 
     @abstractmethod
-    def get_cart_item_by_id(self, cart_item_id: int) -> CartItem:
+    async def get_cart_item_by_id(self, cart_item_id: int) -> CartItem:
         pass
 
     @abstractmethod
-    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, store_id: int, cart_id: int) -> CartItem:
+    async def get_cart_item_by_product_id_and_cart_id(
+        self, product_id: int, store_id: int, cart_id: int
+    ) -> CartItem:
         pass
 
     @abstractmethod
-    def delete_cart(self, cart: Cart) -> None:
+    async def delete_cart(self, cart: Cart) -> None:
         pass
 
     @abstractmethod
-    def create_cart_item(self, cart_item: CartItem) -> CartItem:
+    async def create_cart_item(self, cart_item: CartItem) -> CartItem:
         pass
 
     @abstractmethod
-    def remove_item_from_cart(self, cart_item_id: int) -> None:
+    async def remove_item_from_cart(self, cart_item_id: int) -> None:
         pass
 
     @abstractmethod
-    def update_item_quantity(self, cart_item_id: int, quantity: int) -> CartItem:
+    async def update_item_quantity(self, cart_item_id: int, quantity: int) -> CartItem:
         pass
 
     @abstractmethod
-    def clear(self, cart_id: int) -> None:
+    async def clear(self, cart_id: int) -> None:
         pass
 
     @abstractmethod
-    def clear_cart(self, cart_id: int) -> None:
+    async def clear_cart(self, cart_id: int) -> None:
         pass
-
 
 
 class CartRepository(ICartRepository):
-
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def create_cart(self, cart: Cart) -> Cart:
+    async def create_cart(self, cart: Cart) -> Cart:
         self.db.add(cart)
-        self.db.commit()
-        self.db.refresh(cart)
+        await self.db.commit()
+        await self.db.refresh(cart)
         return cart
 
-    def get_cart_item_by_id(self, cart_item_id: int) -> CartItem:
-        return self.db.query(CartItem).filter(CartItem.id == cart_item_id).first()
+    async def get_cart_item_by_id(self, cart_item_id: int) -> CartItem:
+        result = await self.db.execute(select(CartItem).where(CartItem.id == cart_item_id))
+        return result.scalars().first()
 
-    def get_cart_or_create(self, user_id: int) -> Cart:
-        cart = self.get_cart_by_user_id(user_id)
+    async def get_cart_or_create(self, user_id: int) -> Cart:
+        cart = await self.get_cart_by_user_id(user_id)
 
         if cart:
             return cart
@@ -81,85 +86,89 @@ class CartRepository(ICartRepository):
         self.db.add(cart)
 
         try:
-            self.db.commit()
-            self.db.refresh(cart)
-        except IntegrityError as e:
-            self.db.rollback()
-            cart = self.get_cart_by_user_id(user_id)
+            await self.db.commit()
+            await self.db.refresh(cart)
+        except IntegrityError:
+            await self.db.rollback()
+            cart = await self.get_cart_by_user_id(user_id)
         return cart
 
-
-    def get_cart_by_id(self, cart_id: int) -> Cart:
+    async def get_cart_by_id(self, cart_id: int) -> Cart:
         items_loader = joinedload(Cart.items)
         product_loader = items_loader.joinedload(CartItem.product)
         store_loader = items_loader.joinedload(CartItem.store)
-        return (
-            self.db.query(Cart)
-            .options(
-                items_loader, product_loader, store_loader
-            )
-            .filter(Cart.id == cart_id)
-            .first()
+        result = await self.db.execute(
+            select(Cart)
+            .options(items_loader, product_loader, store_loader)
+            .where(Cart.id == cart_id)
         )
+        return result.unique().scalars().first()
 
-    def get_cart_by_user_id(self, user_id: int) -> Cart:
+    async def get_cart_by_user_id(self, user_id: int) -> Cart:
         items_loader = joinedload(Cart.items)
         product_loader = items_loader.joinedload(CartItem.product)
         store_loader = items_loader.joinedload(CartItem.store)
-        return (
-            self.db.query(Cart)
-            .options(
-                items_loader, product_loader, store_loader
-            )
-            .filter(Cart.user_id == user_id)
-            .first()
+        result = await self.db.execute(
+            select(Cart)
+            .options(items_loader, product_loader, store_loader)
+            .where(Cart.user_id == user_id)
         )
+        return result.unique().scalars().first()
 
-    def get_cart_item_by_product_id_and_cart_id(self, product_id: int, store_id: int, cart_id: int) -> CartItem:
-        return self.db.query(CartItem).filter(CartItem.product_id == product_id, CartItem.store_id == store_id, CartItem.cart_id == cart_id).first()
+    async def get_cart_item_by_product_id_and_cart_id(
+        self, product_id: int, store_id: int, cart_id: int
+    ) -> CartItem:
+        result = await self.db.execute(
+            select(CartItem).where(
+                CartItem.product_id == product_id,
+                CartItem.store_id == store_id,
+                CartItem.cart_id == cart_id,
+            )
+        )
+        return result.scalars().first()
 
-    def update_cart_item(self, cart_item: CartItem) -> CartItem:
-        self.db.commit()
-        self.db.refresh(cart_item)
+    async def update_cart_item(self, cart_item: CartItem) -> CartItem:
+        await self.db.commit()
+        await self.db.refresh(cart_item)
         return cart_item
 
-    def delete_cart(self, cart: Cart) -> None:
-        self.db.delete(cart)
-        self.db.commit()
+    async def delete_cart(self, cart: Cart) -> None:
+        await self.db.delete(cart)
+        await self.db.commit()
 
-    def create_cart_item(self, cart_item: CartItem) -> CartItem:
+    async def create_cart_item(self, cart_item: CartItem) -> CartItem:
         self.db.add(cart_item)
-        self.db.commit()
-        self.db.refresh(cart_item)
+        await self.db.commit()
+        await self.db.refresh(cart_item)
         return cart_item
 
-    def remove_item_from_cart(self, cart_item_id: int) -> None:
-        cart_item = self.db.query(CartItem).filter(CartItem.id == cart_item_id).first()
+    async def remove_item_from_cart(self, cart_item_id: int) -> None:
+        cart_item = await self.get_cart_item_by_id(cart_item_id)
         if not cart_item:
             raise HTTPException(status_code=404, detail="Cart item not found")
-        self.db.delete(cart_item)
-        self.db.commit()
+        await self.db.delete(cart_item)
+        await self.db.commit()
 
-    def update_item_quantity(self, cart_item_id: int, quantity: int) -> CartItem:
-        cart_item = self.db.query(CartItem).filter(CartItem.id == cart_item_id).first()
+    async def update_item_quantity(self, cart_item_id: int, quantity: int) -> CartItem:
+        cart_item = await self.get_cart_item_by_id(cart_item_id)
         if not cart_item:
             raise HTTPException(status_code=404, detail="Cart item not found")
 
         cart_item.quantity = quantity
-        self.db.commit()
-        self.db.refresh(cart_item)
+        await self.db.commit()
+        await self.db.refresh(cart_item)
         return cart_item
 
-    def clear(self, cart_id: int) -> None:
-        cart_items = self.db.query(CartItem).filter(CartItem.cart_id == cart_id).all()
+    async def clear(self, cart_id: int) -> None:
+        result = await self.db.execute(select(CartItem).where(CartItem.cart_id == cart_id))
+        cart_items = result.scalars().all()
         for cart_item in cart_items:
-            self.db.delete(cart_item)
+            await self.db.delete(cart_item)
 
-    def clear_cart(self, cart_id: int) -> None:
-        self.clear(cart_id)
-        self.db.commit()
+    async def clear_cart(self, cart_id: int) -> None:
+        await self.clear(cart_id)
+        await self.db.commit()
 
 
-
-def get_cart_repository(db: Session = Depends(get_db)) -> CartRepository:
+def get_cart_repository(db: AsyncSession = Depends(get_db)) -> CartRepository:
     return CartRepository(db)

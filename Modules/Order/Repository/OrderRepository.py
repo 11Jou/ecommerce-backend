@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from fastapi import Depends
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from Core.Database import get_db
 from Modules.Order.Models import Order, OrderItem
@@ -10,61 +12,60 @@ from Modules.Order.Models import Order, OrderItem
 
 class IOrderRepository(ABC):
     @abstractmethod
-    def create_order(self, order: Order) -> Order:
+    async def create_order(self, order: Order) -> Order:
         pass
 
     @abstractmethod
-    def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+    async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
         pass
 
     @abstractmethod
-    def get_order_by_id(self, order_id: int, user_id: int) -> Order:
+    async def get_order_by_id(self, order_id: int, user_id: int) -> Order:
         pass
 
     @abstractmethod
-    def check_order_by_address_id(self, address_id: int) -> Order | None:
+    async def check_order_by_address_id(self, address_id: int) -> Order | None:
         pass
 
     @abstractmethod
-    def get_all_orders(self) -> List[Order]:
+    async def get_all_orders(self) -> List[Order]:
         pass
 
     @abstractmethod
-    def update_order(self, order: Order) -> Order:
+    async def update_order(self, order: Order) -> Order:
         pass
 
     @abstractmethod
-    def delete_order(self, order: Order) -> None:
+    async def delete_order(self, order: Order) -> None:
         pass
 
     @abstractmethod
-    def add_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
+    async def add_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
         pass
 
     @abstractmethod
-    def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
+    async def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
         pass
-
 
 
 class OrderRepository(IOrderRepository):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def create_order(self, order: Order) -> Order:
+    async def create_order(self, order: Order) -> Order:
         self.db.add(order)
-        self.db.flush()
+        await self.db.flush()
         return order
 
-    def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+    async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
 
-        return (
-            self.db.query(Order)
+        result = await self.db.execute(
+            select(Order)
             .options(
                 items_loader,
                 product_loader,
@@ -72,44 +73,48 @@ class OrderRepository(IOrderRepository):
                 address_loader,
                 user_loader,
             )
-            .filter(Order.user_id == user_id)
-            .all()
+            .where(Order.user_id == user_id)
         )
+        return list(result.unique().scalars().all())
 
-    def get_order_by_id(self, order_id: int, user_id: int) -> Order | None:
+    async def get_order_by_id(self, order_id: int, user_id: int) -> Order | None:
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
-        return (
-            self.db.query(Order)
+        result = await self.db.execute(
+            select(Order)
             .options(items_loader, product_loader, store_loader, address_loader, user_loader)
-            .filter(Order.id == order_id, Order.user_id == user_id)
-            .first()
+            .where(Order.id == order_id, Order.user_id == user_id)
         )
+        return result.unique().scalars().first()
 
-    def check_order_by_address_id(self, address_id: int) -> Order | None:
-        return self.db.query(Order).filter(Order.address_id == address_id).first()
+    async def check_order_by_address_id(self, address_id: int) -> Order | None:
+        result = await self.db.execute(select(Order).where(Order.address_id == address_id))
+        return result.scalars().first()
 
-    def get_all_orders(self) -> List[Order]:
-        return self.db.query(Order).all()
+    async def get_all_orders(self) -> List[Order]:
+        result = await self.db.execute(select(Order))
+        return list(result.scalars().all())
 
-    def update_order(self, order: Order) -> Order:
-        self.db.commit()
-        self.db.refresh(order)
+    async def update_order(self, order: Order) -> Order:
+        await self.db.commit()
+        await self.db.refresh(order)
         return order
 
-    def delete_order(self, order: Order) -> None:
-        self.db.delete(order)
-        self.db.commit()
+    async def delete_order(self, order: Order) -> None:
+        await self.db.delete(order)
+        await self.db.commit()
 
-    def add_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
+    async def add_order_items(self, order_items: List[OrderItem]) -> List[OrderItem]:
         self.db.add_all(order_items)
         return order_items
 
-    def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
-        return self.db.query(OrderItem).filter(OrderItem.id == order_item_id).first()
+    async def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
+        result = await self.db.execute(select(OrderItem).where(OrderItem.id == order_item_id))
+        return result.scalars().first()
 
-def get_order_repository(db: Session = Depends(get_db)) -> IOrderRepository:
+
+def get_order_repository(db: AsyncSession = Depends(get_db)) -> IOrderRepository:
     return OrderRepository(db)

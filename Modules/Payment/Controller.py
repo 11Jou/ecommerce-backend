@@ -12,13 +12,13 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 
 
 @router.post("/pay/{order_id}")
-def pay_order(
+async def pay_order(
     order_id: int,
     pay_data: PayOrderSchema,
     current_user: User = Depends(get_current_user),
     payment_service: PaymentService = Depends(get_payment_service),
 ) -> JSONResponse:
-    payment = payment_service.pay_order(current_user.id, order_id, pay_data)
+    payment = await payment_service.pay_order(current_user.id, order_id, pay_data)
     return success_response(
         message="Payment completed successfully",
         data=to_payment_dict(payment),
