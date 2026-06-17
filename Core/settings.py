@@ -29,3 +29,22 @@ def get_alembic_database_url() -> str:
             "Set it as an environment variable or in the project-root `.env` file."
         )
     return url
+
+
+def get_celery_broker_url() -> str:
+    url = os.getenv("CELERY_BROKER_URL")
+    if not url:
+        raise RuntimeError(
+            "CELERY_BROKER_URL is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return url
+
+def get_celery_backend_url() -> str:
+    url = os.getenv("CELERY_BACKEND_URL")
+    if not url:
+        raise RuntimeError(
+            "CELERY_BACKEND_URL is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return url

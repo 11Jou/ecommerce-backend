@@ -17,6 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ecommerce_network
 
   app:
     build: .
@@ -28,12 +30,78 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
     command: > 
       sh -c "alembic upgrade head && \
            uvicorn main:app --host 0.0.0.0 --port 8000"
-  
+    restart: unless-stopped
+    networks:
+      - ecommerce_network
+
+
+  celery:
+    build: .
+    container_name: ecommerce_celery
+    command: celery -A Core.CeleryApp:celery_app worker --loglevel=info
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ecommerce_network
+
+
+  celery_beat:
+    build: .
+    container_name: ecommerce_celery_beat
+    command: celery -A Core.CeleryApp:celery_app beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ecommerce_network
+
+
+  redis:
+    image: redis:7.0.12-alpine
+    container_name: ecommerce_redis
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce_network
 
 volumes:
   db_data:
+
+networks:
+  ecommerce_network:
+    driver: bridge
