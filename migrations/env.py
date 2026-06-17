@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-from Core.settings import get_database_url
+from Core.settings import get_alembic_database_url
 from Core.Database import Base
 
 # Import every model module so their tables register on Base.metadata.
@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-DATABASE_URL = get_database_url()
+DATABASE_URL = get_alembic_database_url()
 print("DATABASE_URL: ", DATABASE_URL)
 
 
