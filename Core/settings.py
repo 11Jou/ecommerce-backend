@@ -20,6 +20,17 @@ def get_database_url() -> str:
     return url
 
 
+def get_sync_database_url() -> str:
+    url = os.getenv("SYNC_DATABASE_URL")
+
+    if not url:
+        raise RuntimeError(
+            "SYNC_DATABASE_URL is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return url
+
+
 def get_alembic_database_url() -> str:
     url = os.getenv("ALEMBIC_DATABASE_URL")
     if not url:

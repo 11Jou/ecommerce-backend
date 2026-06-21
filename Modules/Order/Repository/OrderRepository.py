@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from Core.Database import get_db
 from Modules.Order.Models import Order, OrderItem, OrderStatus
+from Modules.Stock.Models import Product
 
 class IOrderRepository(ABC):
     @abstractmethod
@@ -64,6 +65,7 @@ class OrderRepository(IOrderRepository):
     async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
+        category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
@@ -73,6 +75,7 @@ class OrderRepository(IOrderRepository):
             .options(
                 items_loader,
                 product_loader,
+                category_loader,
                 store_loader,
                 address_loader,
                 user_loader,
@@ -84,12 +87,13 @@ class OrderRepository(IOrderRepository):
     async def get_order_by_id(self, order_id: int, user_id: int) -> Order | None:
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
+        category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
         result = await self.db.execute(
             select(Order)
-            .options(items_loader, product_loader, store_loader, address_loader, user_loader)
+            .options(items_loader, product_loader, category_loader, store_loader, address_loader, user_loader)
             .where(Order.id == order_id, Order.user_id == user_id)
         )
         return result.unique().scalars().first()
@@ -131,6 +135,7 @@ class OrderRepository(IOrderRepository):
             )
         )
         return list(result.unique().scalars().all())
+
 
 def get_order_repository(db: AsyncSession = Depends(get_db)) -> IOrderRepository:
     return OrderRepository(db)

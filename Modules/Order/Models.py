@@ -16,6 +16,7 @@ class OrderStatus(Enum):
     CANCELLED = "cancelled"
     RETURNED = "returned"
     COMPLETED = "completed"
+    CANCELING = "canceling"
 
 
 class Order(Base):

@@ -36,6 +36,19 @@ class PaymentService:
     async def delete_payment(self, payment_id: int) -> None:
         return await self.payment_repository.delete_payment(payment_id)
 
+    async def _claim_order_for_payment(self, order) -> None:
+        if order.status != OrderStatus.PENDING_PAYMENT:
+            raise HTTPException(status_code=400, detail="Order is not awaiting payment")
+        order.status = OrderStatus.PAYMENT_PROCESSING
+        await self.db.commit()
+
+    async def _release_payment_claim(self, order, *, success: bool) -> None:
+        if success:
+            order.status = OrderStatus.PENDING_SHIPMENT
+        else:
+            order.status = OrderStatus.PENDING_PAYMENT
+        await self.db.commit()
+
     async def pay_order(self, user_id: int, order_id: int, pay_data: PayOrderSchema) -> Payment:
         order = await self.order_repository.get_order_by_id(order_id, user_id)
         if not order:
@@ -51,27 +64,26 @@ class PaymentService:
         if payment.status != PaymentStatus.PENDING:
             raise HTTPException(status_code=400, detail="Payment has already been processed")
 
-        if order.status != OrderStatus.PENDING_PAYMENT:
-            raise HTTPException(status_code=400, detail="Order is not awaiting payment")
-        
-        gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
-        result = gateway.charge(float(order.total_amount), pay_data.card_details)
+        await self._claim_order_for_payment(order)
 
+        gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
         try:
+            result = gateway.charge(float(order.total_amount), pay_data.card_details)
+
             if not result.success:
                 payment.status = PaymentStatus.FAILED
-                await self.db.commit()
+                await self._release_payment_claim(order, success=False)
                 raise HTTPException(status_code=400, detail="Online payment failed")
 
             payment.provider = pay_data.online_provider
             payment.status = PaymentStatus.COMPLETED
-            order.status = OrderStatus.PENDING_SHIPMENT
-            await self.db.commit()
+            await self._release_payment_claim(order, success=True)
             await self.db.refresh(payment)
         except HTTPException:
             raise
         except Exception:
-            await self.db.rollback()
+            order.status = OrderStatus.PENDING_PAYMENT
+            await self.db.commit()
             raise
 
         return payment
