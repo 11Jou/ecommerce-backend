@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 _env_path = Path(__file__).resolve().parents[1] / ".env"
 load_dotenv(dotenv_path=_env_path, override=False)
 
-
 def get_database_url() -> str:
     url = os.getenv("DATABASE_URL")
     if not url:

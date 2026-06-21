@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 from fastapi import Depends
@@ -7,8 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from Core.Database import get_db
-from Modules.Order.Models import Order, OrderItem
-
+from Modules.Order.Models import Order, OrderItem, OrderStatus
 
 class IOrderRepository(ABC):
     @abstractmethod
@@ -45,6 +45,10 @@ class IOrderRepository(ABC):
 
     @abstractmethod
     async def get_order_item_by_id(self, order_item_id: int) -> OrderItem:
+        pass
+
+    @abstractmethod
+    async def get_expired_pending_payment_orders(self, expiration_minutes: int = 10) -> List[Order]:
         pass
 
 
@@ -115,6 +119,18 @@ class OrderRepository(IOrderRepository):
         result = await self.db.execute(select(OrderItem).where(OrderItem.id == order_item_id))
         return result.scalars().first()
 
+    async def get_expired_pending_payment_orders(self, expiration_minutes: int = 10) -> List[Order]:
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=expiration_minutes)
+        items_loader = joinedload(Order.items)
+        result = await self.db.execute(
+            select(Order)
+            .options(items_loader)
+            .where(
+                Order.status == OrderStatus.PENDING_PAYMENT,
+                Order.created_at < cutoff,
+            )
+        )
+        return list(result.unique().scalars().all())
 
 def get_order_repository(db: AsyncSession = Depends(get_db)) -> IOrderRepository:
     return OrderRepository(db)

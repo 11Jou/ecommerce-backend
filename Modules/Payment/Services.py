@@ -53,7 +53,7 @@ class PaymentService:
 
         if order.status != OrderStatus.PENDING_PAYMENT:
             raise HTTPException(status_code=400, detail="Order is not awaiting payment")
-
+        
         gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
         result = gateway.charge(float(order.total_amount), pay_data.card_details)
 

@@ -39,6 +39,13 @@ class StockService:
         stock.quantity -= quantity
         return stock
 
+    async def release_stock(self, product_id: int, store_id: int, quantity: int) -> Stock:
+        stock = await self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
+        if not stock:
+            raise HTTPException(status_code=404, detail="Stock not found")
+        stock.quantity += quantity
+        return stock
+
     async def get_stock_by_product_id_and_store_id(self, product_id: int, store_id: int) -> Stock:
         stock = await self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)
         if not stock:
