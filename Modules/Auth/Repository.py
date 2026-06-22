@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from Core.Database import get_db
+from Core.Database.AsyncDatabase import get_db
 from .Models import User
 
 

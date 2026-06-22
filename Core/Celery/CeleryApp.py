@@ -1,4 +1,4 @@
-import Core.CeleryBootstrap  # noqa: F401 — register ORM mappers before tasks load
+import Core.Celery.CeleryBootstrap  # noqa: F401 — register ORM mappers before tasks load
 
 from celery import Celery
 

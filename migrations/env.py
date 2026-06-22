@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 from Core.settings import get_alembic_database_url
-from Core.Database import Base
+from Core.Database.AsyncDatabase import Base
 
 # Import every model module so their tables register on Base.metadata.
 # Add new model modules here as you create them.

@@ -2,7 +2,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.schema import CheckConstraint
 from sqlalchemy import Column, Integer, ForeignKey, Numeric, String, DateTime, Enum as SQlEnum
 from sqlalchemy.orm import relationship
-from Core.Database import Base
+from Core.Database.AsyncDatabase import Base
 from enum import Enum
 
 class PaymentMethod(Enum):

@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from Core.Database import get_db
+from Core.Database.AsyncDatabase import get_db
 from Modules.Payment.Models import Payment
 
 

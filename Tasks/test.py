@@ -1,4 +1,4 @@
-from Core.CeleryApp import celery_app
+from Core.Celery.CeleryApp import celery_app
 
 @celery_app.task
 def test(x: int, y: int):

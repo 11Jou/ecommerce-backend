@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum as SQlEnum
-from Core.Database import Base
+from Core.Database.AsyncDatabase import Base
 from datetime import datetime
 from enum import Enum
 from sqlalchemy.orm import validates

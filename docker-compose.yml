@@ -44,7 +44,7 @@ services:
   celery:
     build: .
     container_name: ecommerce_celery
-    command: celery -A Core.CeleryApp:celery_app worker --loglevel=info
+    command: celery -A Core.Celery.CeleryApp:celery_app worker --loglevel=info
     environment:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -66,7 +66,7 @@ services:
   celery_beat:
     build: .
     container_name: ecommerce_celery_beat
-    command: celery -A Core.CeleryApp:celery_app beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    command: celery -A Core.Celery.CeleryApp:celery_app beat --loglevel=info --schedule=/tmp/celerybeat-schedule
     environment:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}

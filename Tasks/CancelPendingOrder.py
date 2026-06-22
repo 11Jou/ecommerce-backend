@@ -1,9 +1,9 @@
 import logging
 
-import Core.CeleryBootstrap  # noqa: F401 — ensure mappers before task runs
+import Core.Celery.CeleryBootstrap  # noqa: F401 — ensure mappers before task runs
 
-from Core.CeleryApp import celery_app
-from Core.SyncDatabase import get_sync_session
+from Core.Celery.CeleryApp import celery_app
+from Core.Database.SyncDatabase import get_sync_session
 from Modules.Order.Services.OrderCancellationServiceSync import OrderCancellationServiceSync
 
 logger = logging.getLogger(__name__)

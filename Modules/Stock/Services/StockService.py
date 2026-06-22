@@ -3,7 +3,7 @@ from typing import List
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from Core.Database import get_db
+from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Stock
 from Modules.Stock.Repository.StockRepository import IStockRepository, get_stock_repository
 from Modules.Stock.Schemas import CreateStockSchema, UpdateStockSchema

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from Core.Database import get_db
+from Core.Database.AsyncDatabase import get_db
 from Modules.Order.Models import Order, OrderItem, OrderStatus
 from Modules.Stock.Models import Product
 

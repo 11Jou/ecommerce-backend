@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from Core.Database import get_db
+from Core.Database.AsyncDatabase import get_db
 from Modules.Order.Models import OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Payment.Gateways.Factory import OnlinePaymentGatewayFactory
