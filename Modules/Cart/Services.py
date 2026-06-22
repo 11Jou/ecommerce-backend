@@ -1,12 +1,10 @@
-from typing import List
-
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
-from Modules.Order.Models import Cart, CartItem
-from Modules.Order.Repository.CartRepository import ICartRepository, get_cart_repository
-from Modules.Order.Schemas import CreateCartItemSchema
+from Modules.Cart.Models import Cart, CartItem
+from Modules.Cart.Repository import ICartRepository, get_cart_repository
+from Modules.Cart.Schemas import CreateCartItemSchema
 from Modules.Stock.Services.ProductService import ProductService, get_product_service
 from Modules.Stock.Services.StockService import StockService, get_stock_service
 

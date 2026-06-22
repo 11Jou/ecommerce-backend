@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from Modules.Auth.CheckAuth import get_current_user
 from Modules.Auth.Models import User
 from Modules.Order.Mappers.OrderMapper import to_order_dict
-from Modules.Order.Schemas import *
+from Modules.Order.Schemas import CreateOrderSchema
 from Modules.Order.Services.OrderService import OrderService, get_order_service
 from Utils.Response import success_response
 

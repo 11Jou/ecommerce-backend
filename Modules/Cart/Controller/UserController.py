@@ -3,9 +3,9 @@ from fastapi.responses import JSONResponse
 
 from Modules.Auth.CheckAuth import get_current_user
 from Modules.Auth.Models import User
-from Modules.Order.Mappers.CartMapper import to_cart_dict
-from Modules.Order.Schemas import *
-from Modules.Order.Services.CartService import CartService, get_cart_service
+from Modules.Cart.Mapper import to_cart_dict
+from Modules.Cart.Schemas import CreateCartItemSchema, UpdateCartItemSchema
+from Modules.Cart.Services import CartService, get_cart_service
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/cart", tags=["cart"])

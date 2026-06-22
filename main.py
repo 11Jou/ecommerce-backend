@@ -2,9 +2,10 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 
 from Modules.Auth.Controller import router as AuthRouter
-from Modules.Stock.Controllers import UserRouter as StockUserRouter, AdminRouter as StockAdminRouter
+from Modules.Cart.Controller import router as CartRouter
+from Modules.Stock.Controller import UserRouter as StockUserRouter, AdminRouter as StockAdminRouter
 from Modules.UserProfile.Controller import router as UserProfileRouter
-from Modules.Order.Controllers.User import router as OrderUserRouter
+from Modules.Order.Controller import router as OrderUserRouter
 from Modules.Addresses.Controller import router as AddressesRouter
 from Modules.Payment.Controller import router as PaymentRouter
 from Utils.Response import failed_response
@@ -24,6 +25,7 @@ app.include_router(AuthRouter)
 app.include_router(AddressesRouter)
 app.include_router(UserProfileRouter)
 app.include_router(StockUserRouter)
+app.include_router(CartRouter)
 app.include_router(OrderUserRouter)
 app.include_router(PaymentRouter)
 app.include_router(StockAdminRouter)

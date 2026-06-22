@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
@@ -8,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from Core.Database.AsyncDatabase import get_db
-from Modules.Order.Models import Cart, CartItem
+from Modules.Cart.Models import Cart, CartItem
 
 
 class ICartRepository(ABC):

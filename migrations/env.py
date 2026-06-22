@@ -13,6 +13,7 @@ import Modules.Stock.Models  # noqa: F401
 import Modules.Addresses.Models  # noqa: F401
 import Modules.Order.Models  # noqa: F401
 import Modules.Payment.Models  # noqa: F401
+import Modules.Cart.Models  # noqa: F401
 
 config = context.config
 
@@ -21,8 +22,8 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+
 DATABASE_URL = get_alembic_database_url()
-print("DATABASE_URL: ", DATABASE_URL)
 
 
 def run_migrations_offline() -> None:

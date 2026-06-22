@@ -1,29 +1,11 @@
 from datetime import datetime
-from Modules.Order.Models import OrderStatus
-from pydantic import BaseModel, conint, Field
-from Modules.Stock.Schemas import ProductSchema, StoreSchema
+
+from pydantic import BaseModel
+
 from Modules.Addresses.Schemas import AddressSchema
+from Modules.Order.Models import OrderStatus
 from Modules.Payment.Models import PaymentMethod
-
-
-class CreateCartItemSchema(BaseModel):
-    product_id: int
-    store_id: int
-    quantity: int = Field(ge=1)
-
-class CartItemSchema(BaseModel):
-    id: int
-    product: ProductSchema
-    quantity: int
-    store_id: int
-
-class UpdateCartItemSchema(BaseModel):
-    quantity: int = Field(ge=1)
-
-class CartSchema(BaseModel):
-    id: int
-    user_id: int
-    items: list[CartItemSchema]
+from Modules.Stock.Schemas import ProductSchema, StoreSchema
 
 class CreateOrderSchema(BaseModel):
     payment_method: PaymentMethod

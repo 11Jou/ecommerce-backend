@@ -5,10 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Addresses.Services import AddressesService, get_addresses_service
-from Modules.Order.Models import CartItem, Order, OrderItem, OrderStatus
+from Modules.Cart.Models import CartItem
+from Modules.Cart.Services import CartService, get_cart_service
+from Modules.Order.Models import Order, OrderItem, OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Order.Schemas import CreateOrderSchema
-from Modules.Order.Services.CartService import CartService, get_cart_service
 from Modules.Order.Services.PaymentMethods.Factory import PaymentMethodHandlerFactory
 from Modules.Payment.Repository import IPaymentRepository, get_payment_repository
 from Modules.Stock.Services.StockService import StockService, get_stock_service
