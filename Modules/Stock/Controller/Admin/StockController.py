@@ -8,10 +8,10 @@ from Modules.Stock.Schemas import CreateStockSchema, UpdateStockSchema
 from Modules.Stock.Services.StockService import StockService, get_stock_service
 from Utils.Response import success_response
 
-router = APIRouter(tags=["stock/admin/stocks"])
+router = APIRouter(prefix="/admin/stock/stocks", tags=["admin/stock/stocks"])
 
 
-@router.get("/stocks")
+@router.get("/")
 async def get_all_stocks_controller(
     current_user: User = Depends(require_role(["admin"])),
     stock_service: StockService = Depends(get_stock_service),
@@ -24,7 +24,7 @@ async def get_all_stocks_controller(
     )
 
 
-@router.get("/stocks/store/{store_id}/product/{product_id}")
+@router.get("/store/{store_id}/product/{product_id}")
 async def get_stock_by_store_and_product_controller(
     store_id: int,
     product_id: int,
@@ -39,7 +39,7 @@ async def get_stock_by_store_and_product_controller(
     )
 
 
-@router.get("/stocks/product/{product_id}")
+@router.get("/product/{product_id}")
 async def get_stocks_by_product_id_controller(
     product_id: int,
     current_user: User = Depends(require_role(["admin"])),
@@ -53,7 +53,7 @@ async def get_stocks_by_product_id_controller(
     )
 
 
-@router.get("/stocks/store/{store_id}")
+@router.get("/store/{store_id}")
 async def get_stocks_by_store_id_controller(
     store_id: int,
     current_user: User = Depends(require_role(["admin"])),
@@ -67,7 +67,7 @@ async def get_stocks_by_store_id_controller(
     )
 
 
-@router.post("/stocks")
+@router.post("/")
 async def create_stock_controller(
     stock_data: CreateStockSchema,
     current_user: User = Depends(require_role(["admin"])),
@@ -81,7 +81,7 @@ async def create_stock_controller(
     )
 
 
-@router.put("/stocks/store/{store_id}/product/{product_id}")
+@router.put("/store/{store_id}/product/{product_id}")
 async def update_stock_controller(
     store_id: int,
     product_id: int,
@@ -97,7 +97,7 @@ async def update_stock_controller(
     )
 
 
-@router.delete("/stocks/store/{store_id}/product/{product_id}")
+@router.delete("/store/{store_id}/product/{product_id}")
 async def delete_stock_controller(
     store_id: int,
     product_id: int,

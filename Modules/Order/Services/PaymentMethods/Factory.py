@@ -1,10 +1,7 @@
 from fastapi import HTTPException
 
-from Modules.Order.Services.PaymentMethods.Base import IPaymentMethodHandler
-from Modules.Order.Services.PaymentMethods.CashOnDeliveryHandler import CashOnDeliveryHandler
-from Modules.Order.Services.PaymentMethods.OnlinePaymentHandler import OnlinePaymentHandler
+from Modules.Order.Services.PaymentMethods.PaymentMethodHandler import *
 from Modules.Payment.Models import PaymentMethod
-
 
 class PaymentMethodHandlerFactory:
     _registry = {

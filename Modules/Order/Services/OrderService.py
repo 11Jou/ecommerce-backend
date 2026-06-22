@@ -96,6 +96,9 @@ class OrderService:
             raise HTTPException(status_code=404, detail="Order not found")
         return order
 
+    async def get_all_orders(self) -> List[Order]:
+        return await self.order_repository.get_all_orders()
+
 
 def get_order_service(db: AsyncSession = Depends(get_db)) -> OrderService:
     return OrderService(

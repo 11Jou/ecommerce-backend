@@ -103,8 +103,22 @@ class OrderRepository(IOrderRepository):
         return result.scalars().first()
 
     async def get_all_orders(self) -> List[Order]:
-        result = await self.db.execute(select(Order))
-        return list(result.scalars().all())
+        items_loader = joinedload(Order.items)
+        product_loader = items_loader.joinedload(OrderItem.product)
+        category_loader = product_loader.joinedload(Product.category)
+        store_loader = items_loader.joinedload(OrderItem.store)
+        address_loader = joinedload(Order.address)
+        user_loader = joinedload(Order.user)
+        result = await self.db.execute(select(Order)
+            .options(
+                items_loader,
+                product_loader,
+                category_loader,
+                store_loader,
+                address_loader,
+                user_loader,
+            ))
+        return list(result.unique().scalars().all())
 
     async def update_order(self, order: Order) -> Order:
         await self.db.commit()

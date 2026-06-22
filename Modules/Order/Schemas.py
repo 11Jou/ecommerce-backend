@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from pydantic import BaseModel
-
 from Modules.Addresses.Schemas import AddressSchema
 from Modules.Order.Models import OrderStatus
 from Modules.Payment.Models import PaymentMethod
@@ -22,12 +20,12 @@ class OrderItemSchema(BaseModel):
 
 class OrderSchema(BaseModel):
     id: int
+    user_id: int
     address: AddressSchema
     status: OrderStatus
     total_amount: float
     items: list[OrderItemSchema]
     created_at: datetime
-    updated_at: datetime
 
 
 class CreateOrderItemSchema(BaseModel):

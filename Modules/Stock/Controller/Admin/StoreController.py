@@ -8,10 +8,10 @@ from Modules.Stock.Schemas import CreateStoreSchema, UpdateStoreSchema
 from Modules.Stock.Services.StoreService import StoreService, get_store_service
 from Utils.Response import success_response
 
-router = APIRouter(tags=["stock/admin/stores"])
+router = APIRouter(prefix="/admin/stock/stores", tags=["admin/stock/stores"])
 
 
-@router.get("/stores")
+@router.get("/")
 async def get_all_stores_controller(
     current_user: User = Depends(require_role(["admin"])),
     store_service: StoreService = Depends(get_store_service),
@@ -24,7 +24,7 @@ async def get_all_stores_controller(
     )
 
 
-@router.post("/stores")
+@router.post("/")
 async def create_store_controller(
     store_data: CreateStoreSchema,
     current_user: User = Depends(require_role(["admin"])),
@@ -38,7 +38,7 @@ async def create_store_controller(
     )
 
 
-@router.put("/stores/{store_id}")
+@router.put("/{store_id}")
 async def update_store_controller(
     store_id: int,
     store_data: UpdateStoreSchema,
@@ -53,7 +53,7 @@ async def update_store_controller(
     )
 
 
-@router.delete("/stores/{store_id}")
+@router.delete("/{store_id}")
 async def delete_store_controller(
     store_id: int,
     current_user: User = Depends(require_role(["admin"])),

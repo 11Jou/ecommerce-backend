@@ -8,10 +8,10 @@ from Modules.Stock.Schemas import CreateCategorySchema, UpdateCategorySchema
 from Modules.Stock.Services.CategoryService import CategoryService, get_category_service
 from Utils.Response import success_response
 
-router = APIRouter(tags=["stock/admin/categories"])
+router = APIRouter(prefix="/admin/stock/categories", tags=["admin/stock/categories"])
 
 
-@router.get("/categories")
+@router.get("/")
 async def get_all_categories_controller(
     current_user: User = Depends(require_role(["admin"])),
     category_service: CategoryService = Depends(get_category_service),
@@ -24,7 +24,7 @@ async def get_all_categories_controller(
     )
 
 
-@router.get("/categories/{category_id}")
+@router.get("/{category_id}")
 async def get_category_by_id_controller(
     category_id: int,
     current_user: User = Depends(require_role(["admin"])),
@@ -38,7 +38,7 @@ async def get_category_by_id_controller(
     )
 
 
-@router.post("/categories")
+@router.post("/")
 async def create_category_controller(
     category_data: CreateCategorySchema,
     current_user: User = Depends(require_role(["admin"])),
@@ -52,7 +52,7 @@ async def create_category_controller(
     )
 
 
-@router.put("/categories/{category_id}")
+@router.put("/{category_id}")
 async def update_category_controller(
     category_id: int,
     category_data: UpdateCategorySchema,
@@ -67,7 +67,7 @@ async def update_category_controller(
     )
 
 
-@router.delete("/categories/{category_id}")
+@router.delete("/{category_id}")
 async def delete_category_controller(
     category_id: int,
     current_user: User = Depends(require_role(["admin"])),

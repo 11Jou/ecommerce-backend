@@ -8,10 +8,10 @@ from Modules.Stock.Schemas import CreateProductSchema, UpdateProductSchema
 from Modules.Stock.Services.ProductService import ProductService, get_product_service
 from Utils.Response import success_response
 
-router = APIRouter(tags=["stock/admin/products"])
+router = APIRouter(prefix="/admin/stock/products", tags=["admin/stock/products"])
 
 
-@router.get("/products")
+@router.get("/")
 async def get_all_products_controller(
     current_user: User = Depends(require_role(["admin"])),
     product_service: ProductService = Depends(get_product_service),
@@ -24,7 +24,7 @@ async def get_all_products_controller(
     )
 
 
-@router.get("/products/{product_id}")
+@router.get("/{product_id}")
 async def get_product_by_id_controller(
     product_id: int,
     current_user: User = Depends(require_role(["admin"])),
@@ -38,7 +38,7 @@ async def get_product_by_id_controller(
     )
 
 
-@router.post("/products")
+@router.post("/")
 async def create_product_controller(
     product_data: CreateProductSchema,
     current_user: User = Depends(require_role(["admin"])),
@@ -52,7 +52,7 @@ async def create_product_controller(
     )
 
 
-@router.put("/products/{product_id}")
+@router.put("/{product_id}")
 async def update_product_controller(
     product_id: int,
     product_data: UpdateProductSchema,
@@ -67,7 +67,7 @@ async def update_product_controller(
     )
 
 
-@router.delete("/products/{product_id}")
+@router.delete("/{product_id}")
 async def delete_product_controller(
     product_id: int,
     current_user: User = Depends(require_role(["admin"])),

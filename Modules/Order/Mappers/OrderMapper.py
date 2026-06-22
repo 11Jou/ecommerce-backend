@@ -6,6 +6,7 @@ from Modules.Addresses.Mapper import to_address_dict
 def to_order_schema(order: Order) -> OrderSchema:
     return OrderSchema(
         id=order.id,
+        user_id=order.user_id,
         address=to_address_dict(order.address),
         items=[to_order_item_dict(item) for item in order.items],
         status=order.status,
