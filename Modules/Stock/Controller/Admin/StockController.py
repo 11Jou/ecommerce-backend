@@ -6,6 +6,7 @@ from Modules.Auth.Models import User
 from Modules.Stock.Mappers.StockMapper import to_stock_dict
 from Modules.Stock.Schemas import CreateStockSchema, UpdateStockSchema
 from Modules.Stock.Services.StockService import StockService, get_stock_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/admin/stock/stocks", tags=["admin/stock/stocks"])
@@ -15,11 +16,13 @@ router = APIRouter(prefix="/admin/stock/stocks", tags=["admin/stock/stocks"])
 async def get_all_stocks_controller(
     current_user: User = Depends(require_role(["admin"])),
     stock_service: StockService = Depends(get_stock_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    stocks = await stock_service.get_all_stocks()
+    result = await stock_service.get_all_stocks(pagination.page, pagination.page_size)
     return success_response(
         message="Stocks fetched successfully",
-        data=[to_stock_dict(stock) for stock in stocks],
+        data=[to_stock_dict(stock) for stock in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 
@@ -44,11 +47,15 @@ async def get_stocks_by_product_id_controller(
     product_id: int,
     current_user: User = Depends(require_role(["admin"])),
     stock_service: StockService = Depends(get_stock_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    stocks = await stock_service.get_stocks_by_product_id(product_id)
+    result = await stock_service.get_stocks_by_product_id(
+        product_id, pagination.page, pagination.page_size
+    )
     return success_response(
         message="Stocks fetched successfully",
-        data=[to_stock_dict(stock) for stock in stocks],
+        data=[to_stock_dict(stock) for stock in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 
@@ -58,11 +65,15 @@ async def get_stocks_by_store_id_controller(
     store_id: int,
     current_user: User = Depends(require_role(["admin"])),
     stock_service: StockService = Depends(get_stock_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    stocks = await stock_service.get_stocks_by_store_id(store_id)
+    result = await stock_service.get_stocks_by_store_id(
+        store_id, pagination.page, pagination.page_size
+    )
     return success_response(
         message="Stocks fetched successfully",
-        data=[to_stock_dict(stock) for stock in stocks],
+        data=[to_stock_dict(stock) for stock in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

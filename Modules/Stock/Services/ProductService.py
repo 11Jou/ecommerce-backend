@@ -10,19 +10,22 @@ from Modules.Stock.Repository.ProductRepository import (
     get_product_repository,
 )
 from Modules.Stock.Schemas import CreateProductSchema, UpdateProductSchema
+from Utils.Pagination import PaginatedResult
 
 
 class ProductService:
     def __init__(self, product_repository: IProductRepository):
         self.product_repository = product_repository
 
-    async def get_all_products(self) -> List[Product]:
-        return await self.product_repository.get_all_products()
+    async def get_all_products(self, page: int, page_size: int) -> PaginatedResult[Product]:
+        return await self.product_repository.get_all_products(page, page_size)
 
     async def get_active_products_with_availability(
-        self, name: Optional[str] = None
-    ) -> List[Product]:
-        return await self.product_repository.get_active_products(name=name)
+        self, name: Optional[str] = None, page: int = 1, page_size: int = 20
+    ) -> PaginatedResult[Product]:
+        return await self.product_repository.get_active_products(
+            name=name, page=page, page_size=page_size
+        )
 
     async def get_product_by_id(self, product_id: int) -> Product:
         product = await self.product_repository.get_product_by_id(product_id)

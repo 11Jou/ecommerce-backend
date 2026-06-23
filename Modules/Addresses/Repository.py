@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from fastapi import Depends
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Addresses.Models import Address
+from Utils.Pagination import PaginatedResult, count_total, paginate
 
 
 class IAddressRepository(ABC):
@@ -19,7 +19,9 @@ class IAddressRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
+    async def get_addresses_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Address]:
         pass
 
     @abstractmethod
@@ -45,9 +47,14 @@ class AddressRepository(IAddressRepository):
         result = await self.db.execute(select(Address).where(Address.id == address_id))
         return result.scalars().first()
 
-    async def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
-        result = await self.db.execute(select(Address).where(Address.user_id == user_id))
-        return list(result.scalars().all())
+    async def get_addresses_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Address]:
+        stmt = select(Address).where(Address.user_id == user_id)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def update_address(self, address: Address) -> Address:
         await self.db.commit()

@@ -4,4 +4,5 @@ import Modules.Auth.Models  # noqa: F401
 import Modules.Stock.Models  # noqa: F401
 import Modules.Addresses.Models  # noqa: F401
 import Modules.Order.Models  # noqa: F401
+import Modules.Cart.Models
 import Modules.Payment.Models  # noqa: F401

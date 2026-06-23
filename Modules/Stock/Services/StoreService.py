@@ -7,14 +7,15 @@ from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Store
 from Modules.Stock.Repository.StoreRepository import IStoreRepository, get_store_repository
 from Modules.Stock.Schemas import CreateStoreSchema, UpdateStoreSchema
+from Utils.Pagination import PaginatedResult
 
 
 class StoreService:
     def __init__(self, store_repository: IStoreRepository):
         self.store_repository = store_repository
 
-    async def get_all_stores(self) -> List[Store]:
-        return await self.store_repository.get_all_stores()
+    async def get_all_stores(self, page: int, page_size: int) -> PaginatedResult[Store]:
+        return await self.store_repository.get_all_stores(page, page_size)
 
     async def get_store_by_id(self, store_id: int) -> Store:
         existing_store = await self.store_repository.get_store_by_id(store_id)

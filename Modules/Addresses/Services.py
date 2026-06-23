@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +6,7 @@ from Modules.Addresses.Models import Address
 from Modules.Addresses.Repository import IAddressRepository, get_address_repository
 from Modules.Addresses.Schemas import CreateAddressSchema, UpdateAddressSchema
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
+from Utils.Pagination import PaginatedResult
 
 
 class AddressesService:
@@ -34,8 +33,10 @@ class AddressesService:
     async def get_address_by_id(self, user_id: int, address_id: int) -> Address:
         return await self.address_repository.get_address_by_id(address_id)
 
-    async def get_addresses_by_user_id(self, user_id: int) -> List[Address]:
-        return await self.address_repository.get_addresses_by_user_id(user_id)
+    async def get_addresses_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Address]:
+        return await self.address_repository.get_addresses_by_user_id(user_id, page, page_size)
 
     async def update_address(
         self, user_id: int, address_id: int, update_address_schema: UpdateAddressSchema

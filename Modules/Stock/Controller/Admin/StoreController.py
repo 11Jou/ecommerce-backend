@@ -6,6 +6,7 @@ from Modules.Auth.Models import User
 from Modules.Stock.Mappers.StoreMapper import to_store_dict
 from Modules.Stock.Schemas import CreateStoreSchema, UpdateStoreSchema
 from Modules.Stock.Services.StoreService import StoreService, get_store_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/admin/stock/stores", tags=["admin/stock/stores"])
@@ -15,11 +16,13 @@ router = APIRouter(prefix="/admin/stock/stores", tags=["admin/stock/stores"])
 async def get_all_stores_controller(
     current_user: User = Depends(require_role(["admin"])),
     store_service: StoreService = Depends(get_store_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    stores = await store_service.get_all_stores()
+    result = await store_service.get_all_stores(pagination.page, pagination.page_size)
     return success_response(
         message="Stores fetched successfully",
-        data=[to_store_dict(store) for store in stores],
+        data=[to_store_dict(store) for store in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

@@ -7,19 +7,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Stock
+from Utils.Pagination import PaginatedResult, count_total, paginate
 
 
 class IStockRepository(ABC):
     @abstractmethod
-    async def get_all_stocks(self) -> List[Stock]:
+    async def get_all_stocks(self, page: int, page_size: int) -> PaginatedResult[Stock]:
         pass
 
     @abstractmethod
-    async def get_stocks_by_product_id(self, product_id: int) -> List[Stock]:
+    async def get_stocks_by_product_id(
+        self, product_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
         pass
 
     @abstractmethod
-    async def get_stocks_by_store_id(self, store_id: int) -> List[Stock]:
+    async def get_stocks_by_store_id(
+        self, store_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
         pass
 
     @abstractmethod
@@ -45,17 +50,30 @@ class StockRepository(IStockRepository):
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all_stocks(self) -> List[Stock]:
-        result = await self.db.execute(select(Stock))
-        return list(result.scalars().all())
+    async def get_all_stocks(self, page: int, page_size: int) -> PaginatedResult[Stock]:
+        stmt = select(Stock)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.scalars().all())
+        return PaginatedResult(items=items, total=total)
 
-    async def get_stocks_by_product_id(self, product_id: int) -> List[Stock]:
-        result = await self.db.execute(select(Stock).where(Stock.product_id == product_id))
-        return list(result.scalars().all())
+    async def get_stocks_by_product_id(
+        self, product_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
+        stmt = select(Stock).where(Stock.product_id == product_id)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.scalars().all())
+        return PaginatedResult(items=items, total=total)
 
-    async def get_stocks_by_store_id(self, store_id: int) -> List[Stock]:
-        result = await self.db.execute(select(Stock).where(Stock.store_id == store_id))
-        return list(result.scalars().all())
+    async def get_stocks_by_store_id(
+        self, store_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
+        stmt = select(Stock).where(Stock.store_id == store_id)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def get_stock_by_product_id_and_store_id(
         self, product_id: int, store_id: int

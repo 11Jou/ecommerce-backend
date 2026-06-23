@@ -10,6 +10,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from Utils.Pagination import PaginationMeta
+
 T = TypeVar("T")
 
 
@@ -47,6 +49,7 @@ class ApiResponse(BaseModel, Generic[T]):
     success: bool
     message: str
     data: T | None = None
+    pagination: PaginationMeta | None = None
     error: Any | None = None
     status_code: int = Field(
         ...,
@@ -61,17 +64,19 @@ def success_response(
     data: Any = None,
     message: str = "Success",
     status_code: int = 200,
+    pagination: PaginationMeta | None = None,
 ) -> JSONResponse:
     payload = ApiResponse[Any](
         success=True,
         message=message,
         data=_json_safe(data),
+        pagination=pagination,
         error=None,
         status_code=status_code,
     )
     return JSONResponse(
         status_code=status_code,
-        content=jsonable_encoder(payload.model_dump(mode="json")),
+        content=jsonable_encoder(payload.model_dump(mode="json", exclude_none=True)),
     )
 
 

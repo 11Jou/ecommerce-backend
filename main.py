@@ -5,7 +5,7 @@ from Modules.Auth.Controller import router as AuthRouter
 from Modules.Cart.Controller import router as CartRouter
 from Modules.Stock.Controller import UserRouter as StockUserRouter, AdminRouter as StockAdminRouter
 from Modules.UserProfile.Controller import router as UserProfileRouter
-from Modules.Order.Controller import router as OrderUserRouter, router as OrderAdminRouter
+from Modules.Order.Controller import UserRouter as OrderUserRouter, AdminRouter as OrderAdminRouter
 from Modules.Addresses.Controller import router as AddressesRouter
 from Modules.Payment.Controller import router as PaymentRouter
 from Utils.Response import failed_response
@@ -28,8 +28,8 @@ app.include_router(StockUserRouter)
 app.include_router(CartRouter)
 app.include_router(OrderUserRouter)
 app.include_router(PaymentRouter)
-app.include_router(OrderAdminRouter)
 app.include_router(StockAdminRouter)
+app.include_router(OrderAdminRouter)
 
 
 @app.exception_handler(HTTPException)

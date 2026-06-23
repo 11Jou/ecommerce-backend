@@ -6,6 +6,7 @@ from Modules.Auth.Models import User
 from Modules.Stock.Mappers.CategoryMapper import to_category_dict
 from Modules.Stock.Schemas import CreateCategorySchema, UpdateCategorySchema
 from Modules.Stock.Services.CategoryService import CategoryService, get_category_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/admin/stock/categories", tags=["admin/stock/categories"])
@@ -15,11 +16,13 @@ router = APIRouter(prefix="/admin/stock/categories", tags=["admin/stock/categori
 async def get_all_categories_controller(
     current_user: User = Depends(require_role(["admin"])),
     category_service: CategoryService = Depends(get_category_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    categories = await category_service.get_all_categories()
+    result = await category_service.get_all_categories(pagination.page, pagination.page_size)
     return success_response(
         message="Categories fetched successfully",
-        data=[to_category_dict(category) for category in categories],
+        data=[to_category_dict(category) for category in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

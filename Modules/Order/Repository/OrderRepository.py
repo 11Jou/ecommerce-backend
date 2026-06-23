@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 from Core.Database.AsyncDatabase import get_db
 from Modules.Order.Models import Order, OrderItem, OrderStatus
 from Modules.Stock.Models import Product
+from Utils.Pagination import PaginatedResult, count_total, paginate
 
 class IOrderRepository(ABC):
     @abstractmethod
@@ -17,7 +18,9 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+    async def get_orders_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Order]:
         pass
 
     @abstractmethod
@@ -29,7 +32,7 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all_orders(self) -> List[Order]:
+    async def get_all_orders(self, page: int, page_size: int) -> PaginatedResult[Order]:
         pass
 
     @abstractmethod
@@ -57,20 +60,14 @@ class OrderRepository(IOrderRepository):
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_order(self, order: Order) -> Order:
-        self.db.add(order)
-        await self.db.flush()
-        return order
-
-    async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
+    def _order_list_stmt(self):
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
         category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
-
-        result = await self.db.execute(
+        return (
             select(Order)
             .options(
                 items_loader,
@@ -80,9 +77,21 @@ class OrderRepository(IOrderRepository):
                 address_loader,
                 user_loader,
             )
-            .where(Order.user_id == user_id)
         )
-        return list(result.unique().scalars().all())
+
+    async def create_order(self, order: Order) -> Order:
+        self.db.add(order)
+        await self.db.flush()
+        return order
+
+    async def get_orders_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Order]:
+        stmt = self._order_list_stmt().where(Order.user_id == user_id)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.unique().scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def get_order_by_id(self, order_id: int, user_id: int) -> Order | None:
         items_loader = joinedload(Order.items)
@@ -102,23 +111,12 @@ class OrderRepository(IOrderRepository):
         result = await self.db.execute(select(Order).where(Order.address_id == address_id))
         return result.scalars().first()
 
-    async def get_all_orders(self) -> List[Order]:
-        items_loader = joinedload(Order.items)
-        product_loader = items_loader.joinedload(OrderItem.product)
-        category_loader = product_loader.joinedload(Product.category)
-        store_loader = items_loader.joinedload(OrderItem.store)
-        address_loader = joinedload(Order.address)
-        user_loader = joinedload(Order.user)
-        result = await self.db.execute(select(Order)
-            .options(
-                items_loader,
-                product_loader,
-                category_loader,
-                store_loader,
-                address_loader,
-                user_loader,
-            ))
-        return list(result.unique().scalars().all())
+    async def get_all_orders(self, page: int, page_size: int) -> PaginatedResult[Order]:
+        stmt = self._order_list_stmt()
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.unique().scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def update_order(self, order: Order) -> Order:
         await self.db.commit()

@@ -8,6 +8,7 @@ from Modules.Stock.Mappers.ProductMapper import to_product_with_availability_dic
 from Modules.Stock.Schemas import CategorySchema, ProductSchema
 from Modules.Stock.Services.CategoryService import CategoryService, get_category_service
 from Modules.Stock.Services.ProductService import ProductService, get_product_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/stock", tags=["stock"])
@@ -16,11 +17,13 @@ router = APIRouter(prefix="/stock", tags=["stock"])
 @router.get("/categories")
 async def get_all_categories_controller(
     category_service: CategoryService = Depends(get_category_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    categories = await category_service.get_all_categories()
+    result = await category_service.get_all_categories(pagination.page, pagination.page_size)
     return success_response(
         message="Categories fetched successfully",
-        data=[to_category_dict(category) for category in categories],
+        data=[to_category_dict(category) for category in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 
@@ -42,11 +45,15 @@ async def get_category_by_id_controller(
 async def get_all_products_controller(
     name: Optional[str] = Query(None),
     product_service: ProductService = Depends(get_product_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    products = await product_service.get_active_products_with_availability(name=name)
+    result = await product_service.get_active_products_with_availability(
+        name=name, page=pagination.page, page_size=pagination.page_size
+    )
     return success_response(
         message="Products fetched successfully",
-        data=[to_product_with_availability_dict(product) for product in products],
+        data=[to_product_with_availability_dict(product) for product in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

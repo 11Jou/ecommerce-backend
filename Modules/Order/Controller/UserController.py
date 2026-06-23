@@ -6,6 +6,7 @@ from Modules.Auth.Models import User
 from Modules.Order.Mappers.OrderMapper import to_order_dict
 from Modules.Order.Schemas import CreateOrderSchema
 from Modules.Order.Services.OrderService import OrderService, get_order_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/order", tags=["order"])
@@ -15,11 +16,15 @@ router = APIRouter(prefix="/order", tags=["order"])
 async def get_orders(
     current_user: User = Depends(get_current_user),
     order_service: OrderService = Depends(get_order_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    orders = await order_service.get_orders_by_user_id(current_user.id)
+    result = await order_service.get_orders_by_user_id(
+        current_user.id, pagination.page, pagination.page_size
+    )
     return success_response(
         message="Orders retrieved successfully",
-        data=[to_order_dict(order) for order in orders],
+        data=[to_order_dict(order) for order in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

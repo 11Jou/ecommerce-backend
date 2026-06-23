@@ -1,2 +1,2 @@
-from .UserController import router
-from .AdminController import router
+from .UserController import router as UserRouter
+from .AdminController import router as AdminRouter

@@ -6,6 +6,7 @@ from Modules.Auth.Models import User
 from Modules.Stock.Mappers.ProductMapper import to_product_dict
 from Modules.Stock.Schemas import CreateProductSchema, UpdateProductSchema
 from Modules.Stock.Services.ProductService import ProductService, get_product_service
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/admin/stock/products", tags=["admin/stock/products"])
@@ -15,11 +16,13 @@ router = APIRouter(prefix="/admin/stock/products", tags=["admin/stock/products"]
 async def get_all_products_controller(
     current_user: User = Depends(require_role(["admin"])),
     product_service: ProductService = Depends(get_product_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    products = await product_service.get_all_products()
+    result = await product_service.get_all_products(pagination.page, pagination.page_size)
     return success_response(
         message="Products fetched successfully",
-        data=[to_product_dict(product) for product in products],
+        data=[to_product_dict(product) for product in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

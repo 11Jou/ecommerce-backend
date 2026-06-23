@@ -10,14 +10,15 @@ from Modules.Stock.Repository.CategoryRepository import (
     get_category_repository,
 )
 from Modules.Stock.Schemas import CreateCategorySchema, UpdateCategorySchema
+from Utils.Pagination import PaginatedResult
 
 
 class CategoryService:
     def __init__(self, category_repository: ICategoryRepository):
         self.category_repository = category_repository
 
-    async def get_all_categories(self) -> List[Category]:
-        return await self.category_repository.get_all_categories()
+    async def get_all_categories(self, page: int, page_size: int) -> PaginatedResult[Category]:
+        return await self.category_repository.get_all_categories(page, page_size)
 
     async def get_category_by_id(self, category_id: int) -> Category:
         existing_category = await self.category_repository.get_category_by_id(category_id)

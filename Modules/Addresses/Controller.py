@@ -6,6 +6,7 @@ from Modules.Addresses.Schemas import CreateAddressSchema, UpdateAddressSchema
 from Modules.Addresses.Services import AddressesService, get_addresses_service
 from Modules.Auth.CheckAuth import get_current_user
 from Modules.Auth.Models import User
+from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
 
 router = APIRouter(prefix="/addresses", tags=["addresses"])
@@ -15,11 +16,15 @@ router = APIRouter(prefix="/addresses", tags=["addresses"])
 async def get_addresses(
     current_user: User = Depends(get_current_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
+    pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
-    addresses = await addresses_service.get_addresses_by_user_id(current_user.id)
+    result = await addresses_service.get_addresses_by_user_id(
+        current_user.id, pagination.page, pagination.page_size
+    )
     return success_response(
         message="Addresses retrieved successfully",
-        data=[to_address_dict(address) for address in addresses],
+        data=[to_address_dict(address) for address in result.items],
+        pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
         status_code=200,
     )
 

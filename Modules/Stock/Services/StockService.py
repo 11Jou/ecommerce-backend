@@ -7,20 +7,25 @@ from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Stock
 from Modules.Stock.Repository.StockRepository import IStockRepository, get_stock_repository
 from Modules.Stock.Schemas import CreateStockSchema, UpdateStockSchema
+from Utils.Pagination import PaginatedResult
 
 
 class StockService:
     def __init__(self, stock_repository: IStockRepository):
         self.stock_repository = stock_repository
 
-    async def get_all_stocks(self) -> List[Stock]:
-        return await self.stock_repository.get_all_stocks()
+    async def get_all_stocks(self, page: int, page_size: int) -> PaginatedResult[Stock]:
+        return await self.stock_repository.get_all_stocks(page, page_size)
 
-    async def get_stocks_by_product_id(self, product_id: int) -> List[Stock]:
-        return await self.stock_repository.get_stocks_by_product_id(product_id)
+    async def get_stocks_by_product_id(
+        self, product_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
+        return await self.stock_repository.get_stocks_by_product_id(product_id, page, page_size)
 
-    async def get_stocks_by_store_id(self, store_id: int) -> List[Stock]:
-        return await self.stock_repository.get_stocks_by_store_id(store_id)
+    async def get_stocks_by_store_id(
+        self, store_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Stock]:
+        return await self.stock_repository.get_stocks_by_store_id(store_id, page, page_size)
 
     async def check_stock_availability(self, product_id: int, store_id: int, quantity: int) -> bool:
         stock = await self.stock_repository.get_stock_by_product_id_and_store_id(product_id, store_id)

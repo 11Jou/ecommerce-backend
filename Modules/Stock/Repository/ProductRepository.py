@@ -8,11 +8,12 @@ from sqlalchemy.orm import joinedload
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Product, Stock
+from Utils.Pagination import PaginatedResult, count_total, paginate
 
 
 class IProductRepository(ABC):
     @abstractmethod
-    async def get_all_products(self) -> List[Product]:
+    async def get_all_products(self, page: int, page_size: int) -> PaginatedResult[Product]:
         pass
 
     @abstractmethod
@@ -39,13 +40,19 @@ class ProductRepository(IProductRepository):
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all_products(self) -> List[Product]:
-        result = await self.db.execute(
-            select(Product).options(joinedload(Product.category))
-        )
-        return list(result.unique().scalars().all())
+    async def get_all_products(self, page: int, page_size: int) -> PaginatedResult[Product]:
+        stmt = select(Product).options(joinedload(Product.category))
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.unique().scalars().all())
+        return PaginatedResult(items=items, total=total)
 
-    async def get_active_products(self, name: Optional[str] = None) -> List[Product]:
+    async def get_active_products(
+        self,
+        name: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> PaginatedResult[Product]:
         stmt = (
             select(Product)
             .options(
@@ -58,8 +65,10 @@ class ProductRepository(IProductRepository):
         if name and name.strip():
             stmt = stmt.where(Product.name.ilike(f"%{name.strip()}%"))
 
-        result = await self.db.execute(stmt)
-        return list(result.unique().scalars().all())
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.unique().scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def get_product_by_id(self, product_id: int) -> Product:
         result = await self.db.execute(

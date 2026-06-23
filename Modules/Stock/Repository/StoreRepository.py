@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from fastapi import Depends
 from sqlalchemy import select
@@ -7,11 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Stock.Models import Store
+from Utils.Pagination import PaginatedResult, count_total, paginate
 
 
 class IStoreRepository(ABC):
     @abstractmethod
-    async def get_all_stores(self) -> List[Store]:
+    async def get_all_stores(self, page: int, page_size: int) -> PaginatedResult[Store]:
         pass
 
     @abstractmethod
@@ -35,9 +35,12 @@ class StoreRepository(IStoreRepository):
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all_stores(self) -> List[Store]:
-        result = await self.db.execute(select(Store))
-        return list(result.scalars().all())
+    async def get_all_stores(self, page: int, page_size: int) -> PaginatedResult[Store]:
+        stmt = select(Store)
+        total = await count_total(self.db, stmt)
+        result = await self.db.execute(paginate(stmt, page, page_size))
+        items = list(result.scalars().all())
+        return PaginatedResult(items=items, total=total)
 
     async def get_store_by_id(self, store_id: int) -> Store:
         result = await self.db.execute(select(Store).where(Store.id == store_id))

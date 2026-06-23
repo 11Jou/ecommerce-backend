@@ -13,6 +13,7 @@ from Modules.Order.Schemas import CreateOrderSchema
 from Modules.Order.Services.PaymentMethods.Factory import PaymentMethodHandlerFactory
 from Modules.Payment.Repository import IPaymentRepository, get_payment_repository
 from Modules.Stock.Services.StockService import StockService, get_stock_service
+from Utils.Pagination import PaginatedResult
 
 
 class OrderService:
@@ -87,8 +88,10 @@ class OrderService:
 
         return new_order
 
-    async def get_orders_by_user_id(self, user_id: int) -> List[Order]:
-        return await self.order_repository.get_orders_by_user_id(user_id)
+    async def get_orders_by_user_id(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginatedResult[Order]:
+        return await self.order_repository.get_orders_by_user_id(user_id, page, page_size)
 
     async def get_order_by_id(self, order_id: int, user_id: int) -> Order:
         order = await self.order_repository.get_order_by_id(order_id, user_id)
@@ -96,8 +99,8 @@ class OrderService:
             raise HTTPException(status_code=404, detail="Order not found")
         return order
 
-    async def get_all_orders(self) -> List[Order]:
-        return await self.order_repository.get_all_orders()
+    async def get_all_orders(self, page: int, page_size: int) -> PaginatedResult[Order]:
+        return await self.order_repository.get_all_orders(page, page_size)
 
 
 def get_order_service(db: AsyncSession = Depends(get_db)) -> OrderService:
