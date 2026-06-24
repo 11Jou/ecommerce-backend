@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from Core.Database.AsyncDatabase import get_db
 from Modules.Cart.Models import Cart, CartItem
+from Modules.Stock.Models import Product
 
 
 class ICartRepository(ABC):
@@ -95,10 +96,11 @@ class CartRepository(ICartRepository):
     async def get_cart_by_id(self, cart_id: int) -> Cart:
         items_loader = joinedload(Cart.items)
         product_loader = items_loader.joinedload(CartItem.product)
+        category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(CartItem.store)
         result = await self.db.execute(
             select(Cart)
-            .options(items_loader, product_loader, store_loader)
+            .options(items_loader, product_loader, category_loader, store_loader)
             .where(Cart.id == cart_id)
         )
         return result.unique().scalars().first()
@@ -106,10 +108,11 @@ class CartRepository(ICartRepository):
     async def get_cart_by_user_id(self, user_id: int) -> Cart:
         items_loader = joinedload(Cart.items)
         product_loader = items_loader.joinedload(CartItem.product)
+        category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(CartItem.store)
         result = await self.db.execute(
             select(Cart)
-            .options(items_loader, product_loader, store_loader)
+            .options(items_loader, product_loader, category_loader, store_loader)
             .where(Cart.user_id == user_id)
         )
         return result.unique().scalars().first()

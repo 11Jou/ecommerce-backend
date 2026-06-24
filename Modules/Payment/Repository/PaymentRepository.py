@@ -31,10 +31,6 @@ class IPaymentRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete_payment(self, payment_id: int) -> None:
-        pass
-
-    @abstractmethod
     async def get_all_payments(self) -> List[Payment]:
         pass
 
@@ -66,10 +62,6 @@ class PaymentRepository(IPaymentRepository):
         await self.db.commit()
         await self.db.refresh(payment)
         return payment
-
-    async def delete_payment(self, payment_id: int) -> None:
-        await self.db.execute(delete(Payment).where(Payment.id == payment_id))
-        await self.db.commit()
 
     async def get_all_payments(self) -> List[Payment]:
         result = await self.db.execute(select(Payment))

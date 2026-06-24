@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 
 from Modules.Stock.Schemas import ProductSchema
+from Modules.Stock.Schemas import StoreSchema
 
 
 class CreateCartItemSchema(BaseModel):
@@ -13,7 +14,7 @@ class CartItemSchema(BaseModel):
     id: int
     product: ProductSchema
     quantity: int
-    store_id: int
+    store: StoreSchema
 
 
 class UpdateCartItemSchema(BaseModel):

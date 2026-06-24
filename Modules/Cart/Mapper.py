@@ -1,6 +1,7 @@
 from Modules.Cart.Models import Cart, CartItem
 from Modules.Cart.Schemas import CartItemSchema, CartSchema
 from Modules.Stock.Mappers.ProductMapper import to_product_schema
+from Modules.Stock.Mappers.StoreMapper import to_store_schema
 
 
 def to_cart_item_schema(cart_item: CartItem) -> CartItemSchema:
@@ -8,7 +9,7 @@ def to_cart_item_schema(cart_item: CartItem) -> CartItemSchema:
         id=cart_item.id,
         product=to_product_schema(cart_item.product),
         quantity=cart_item.quantity,
-        store_id=cart_item.store_id,
+        store=to_store_schema(cart_item.store),
     )
 
 

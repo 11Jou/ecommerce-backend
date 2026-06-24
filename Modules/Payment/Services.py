@@ -6,7 +6,7 @@ from Modules.Order.Models import OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Payment.Gateways.Factory import OnlinePaymentGatewayFactory
 from Modules.Payment.Models import Payment, PaymentMethod, PaymentStatus
-from Modules.Payment.Repository import IPaymentRepository, get_payment_repository
+from Modules.Payment.Repository.PaymentRepository import IPaymentRepository, get_payment_repository
 from Modules.Payment.Schemas import PayOrderSchema
 
 
@@ -30,11 +30,13 @@ class PaymentService:
     async def get_payment_by_id(self, payment_id: int) -> Payment:
         return await self.payment_repository.get_payment_by_id(payment_id)
 
-    async def update_payment(self, payment: Payment) -> Payment:
-        return await self.payment_repository.update_payment(payment)
-
-    async def delete_payment(self, payment_id: int) -> None:
-        return await self.payment_repository.delete_payment(payment_id)
+    async def validate_payment(self, payment: Payment) -> None:
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+        if payment.payment_method != PaymentMethod.ONLINE_PAYMENT:
+            raise HTTPException(status_code=400, detail="Order is not an online payment order")
+        if payment.status != PaymentStatus.PENDING:
+            raise HTTPException(status_code=400, detail="Payment has already been processed")
 
     async def _claim_order_for_payment(self, order) -> None:
         if order.status != OrderStatus.PENDING_PAYMENT:
@@ -55,25 +57,19 @@ class PaymentService:
             raise HTTPException(status_code=404, detail="Order not found")
 
         payment = await self.payment_repository.get_payment_by_order_id(order_id)
-        if not payment:
-            raise HTTPException(status_code=404, detail="Payment not found")
 
-        if payment.payment_method != PaymentMethod.ONLINE_PAYMENT:
-            raise HTTPException(status_code=400, detail="Order is not an online payment order")
-
-        if payment.status != PaymentStatus.PENDING:
-            raise HTTPException(status_code=400, detail="Payment has already been processed")
+        await self.validate_payment(payment)
 
         await self._claim_order_for_payment(order)
 
         gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
         try:
             result = gateway.pay(order.total_amount)
+            print(result)
 
             payment.intent_id = result.payment_intent_id
             payment.status = PaymentStatus.PENDING
-            await self.db.commit()
-            await self.db.refresh(payment)
+            self.payment_repository.update_payment(payment)
         except HTTPException:
             raise
         except Exception:
