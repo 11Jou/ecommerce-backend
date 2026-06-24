@@ -58,3 +58,12 @@ def get_celery_backend_url() -> str:
             "Set it as an environment variable or in the project-root `.env` file."
         )
     return url
+
+def get_stripe_secret_key() -> str:
+    key = os.getenv("STRIPE_SECRET_KEY")
+    if not key:
+        raise RuntimeError(
+            "STRIPE_SECRET_KEY is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return key

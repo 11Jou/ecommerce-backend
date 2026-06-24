@@ -11,7 +11,7 @@ from Modules.Order.Models import Order, OrderItem, OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Order.Schemas import CreateOrderSchema
 from Modules.Order.Services.PaymentMethods.Factory import PaymentMethodHandlerFactory
-from Modules.Payment.Repository import IPaymentRepository, get_payment_repository
+from Modules.Payment.Repository.PaymentRepository import IPaymentRepository, get_payment_repository
 from Modules.Stock.Services.StockService import StockService, get_stock_service
 from Utils.Pagination import PaginatedResult
 

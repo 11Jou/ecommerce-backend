@@ -33,6 +33,7 @@ class Payment(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
     payment_method = Column(SQlEnum(PaymentMethod), nullable=False)
     provider = Column(SQlEnum(OnlineProvider), nullable=True)
+    intent_id = Column(String, nullable=True)
     status = Column(SQlEnum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

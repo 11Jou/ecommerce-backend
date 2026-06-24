@@ -68,16 +68,11 @@ class PaymentService:
 
         gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
         try:
-            result = gateway.charge(float(order.total_amount), pay_data.card_details)
+            result = gateway.pay(order.total_amount)
 
-            if not result.success:
-                payment.status = PaymentStatus.FAILED
-                await self._release_payment_claim(order, success=False)
-                raise HTTPException(status_code=400, detail="Online payment failed")
-
-            payment.provider = pay_data.online_provider
-            payment.status = PaymentStatus.COMPLETED
-            await self._release_payment_claim(order, success=True)
+            payment.intent_id = result.payment_intent_id
+            payment.status = PaymentStatus.PENDING
+            await self.db.commit()
             await self.db.refresh(payment)
         except HTTPException:
             raise

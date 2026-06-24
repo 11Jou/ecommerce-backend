@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from Modules.Order.Models import Order, OrderStatus
 from Modules.Order.Repository.OrderRepositorySync import OrderRepositorySync
 from Modules.Payment.Models import PaymentStatus
-from Modules.Payment.RepositorySync import PaymentRepositorySync
+from Modules.Payment.Repository.PaymentRepositorySync import PaymentRepositorySync
 from Modules.Stock.Repository.StockRepositorySync import StockRepositorySync
 
 
