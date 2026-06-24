@@ -63,16 +63,18 @@ class PaymentService:
         await self._claim_order_for_payment(order)
 
         gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
+
         try:
             result = gateway.pay(order.total_amount)
-            print(result)
-
             payment.intent_id = result.payment_intent_id
             payment.status = PaymentStatus.PENDING
-            self.payment_repository.update_payment(payment)
+            await self.payment_repository.update_payment(payment)
+
         except HTTPException:
             raise
+            
         except Exception:
+            payment.status = PaymentStatus.FAILED
             order.status = OrderStatus.PENDING_PAYMENT
             await self.db.commit()
             raise

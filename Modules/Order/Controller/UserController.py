@@ -52,6 +52,5 @@ async def create_order(
     order = await order_service.place_order(current_user.id, create_order_schema)
     return success_response(
         message="Order created successfully",
-        data=to_order_dict(order),
         status_code=200,
     )

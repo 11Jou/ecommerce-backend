@@ -4,7 +4,6 @@ from typing import Optional
 
 from Modules.Order.Models import Order
 from Modules.Payment.Models import Payment
-from Modules.Payment.Schemas import CardDetailsSchema
 
 
 @dataclass
