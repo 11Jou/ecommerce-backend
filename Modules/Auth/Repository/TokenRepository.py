@@ -17,6 +17,10 @@ class ITokenRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_token_by_user_id(self, user_id: int) -> ActivationToken | None:
+        pass
+
+    @abstractmethod
     async def update_token(self, token: ActivationToken) -> ActivationToken:
         pass
 
@@ -39,6 +43,12 @@ class TokenRepository(ITokenRepository):
             select(ActivationToken)
             .options(joinedload(ActivationToken.user))
             .where(ActivationToken.token == token)
+        )
+        return result.scalars().first()
+
+    async def get_token_by_user_id(self, user_id: int) -> ActivationToken | None:
+        result = await self.db.execute(
+            select(ActivationToken).where(ActivationToken.user_id == user_id)
         )
         return result.scalars().first()
 

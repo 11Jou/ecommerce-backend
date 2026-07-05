@@ -45,7 +45,7 @@ class ActivationToken(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True, unique=True)
     token = Column(String, nullable=False, index=True, unique=True)
     is_used = Column(Boolean, default=False)
-    expires_at = Column(DateTime, default=datetime.now() + timedelta(minutes=15))
+    expires_at = Column(DateTime, default=lambda: datetime.now() + timedelta(minutes=15))
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
 

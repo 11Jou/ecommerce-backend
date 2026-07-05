@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from Modules.Auth.CheckAuth import get_current_user
+from Modules.Auth.CheckAuth import get_current_verified_user
 from Modules.Auth.Models import User
 from Modules.Order.Mappers.OrderMapper import to_order_dict
 from Modules.Order.Schemas import CreateOrderSchema
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/order", tags=["order"])
 
 @router.get("/")
 async def get_orders(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     order_service: OrderService = Depends(get_order_service),
     pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
@@ -32,7 +32,7 @@ async def get_orders(
 @router.get("/{order_id}")
 async def get_order(
     order_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     order_service: OrderService = Depends(get_order_service),
 ) -> JSONResponse:
     order = await order_service.get_order_by_id(order_id, current_user.id)
@@ -46,7 +46,7 @@ async def get_order(
 @router.post("/place-order")
 async def create_order(
     create_order_schema: CreateOrderSchema,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     order_service: OrderService = Depends(get_order_service),
 ) -> JSONResponse:
     order = await order_service.place_order(current_user.id, create_order_schema)

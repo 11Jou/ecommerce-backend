@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException
 from jose import JWTError
@@ -50,6 +50,7 @@ class AuthService:
             refresh_token=refresh_token,
             token_type="bearer",
             role=user.role,
+            is_verified=user.is_verified,
         )
 
     async def refresh_token(self, refresh_token: str) -> Token:
@@ -70,6 +71,7 @@ class AuthService:
                 refresh_token=refresh_token,
                 token_type="bearer",
                 role=user.role,
+                is_verified=user.is_verified,
             )
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
@@ -84,6 +86,15 @@ class AuthService:
 
     async def create_activation_token(self, user: User) -> ActivationToken:
         token = self.security_service.generate_secret_token()
+
+        existing_token = await self.token_repository.get_token_by_user_id(user.id)
+        if existing_token:
+            existing_token.token = token
+            existing_token.is_used = False
+            existing_token.expires_at = datetime.now() + timedelta(minutes=15)
+            existing_token.updated_at = datetime.now()
+            return await self.token_repository.update_token(existing_token)
+
         activation_token = ActivationToken(
             token=token,
             user_id=user.id,

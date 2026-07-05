@@ -45,6 +45,7 @@ class Token(BaseModel):
     refresh_token: str
     role: Role
     token_type: str
+    is_verified: bool
 
 class RefreshToken(BaseModel):
     refresh_token: str

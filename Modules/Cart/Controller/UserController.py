@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from Modules.Auth.CheckAuth import get_current_user
+from Modules.Auth.CheckAuth import get_current_verified_user
 from Modules.Auth.Models import User
 from Modules.Cart.Mapper import to_cart_dict
 from Modules.Cart.Schemas import CreateCartItemSchema, UpdateCartItemSchema
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/cart", tags=["cart"])
 
 @router.get("/cart")
 async def get_cart(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
     cart = await cart_service.get_cart_by_user_id(current_user.id)
@@ -27,7 +27,7 @@ async def get_cart(
 @router.post("/add")
 async def add_item_to_cart(
     cart_item: CreateCartItemSchema,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
     cart = await cart_service.get_cart_or_create(current_user.id)
@@ -44,7 +44,7 @@ async def add_item_to_cart(
 async def update_cart_item(
     cart_item_id: int,
     update_cart_item_schema: UpdateCartItemSchema,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
     cart = await cart_service.get_cart_by_user_id(current_user.id)
@@ -65,7 +65,7 @@ async def update_cart_item(
 @router.delete("/items/{cart_item_id}")
 async def delete_cart_item(
     cart_item_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
     await cart_service.remove_item_from_cart(cart_item_id)
@@ -79,7 +79,7 @@ async def delete_cart_item(
 
 @router.delete("/clear")
 async def clear_cart(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     cart_service: CartService = Depends(get_cart_service),
 ) -> JSONResponse:
     cart = await cart_service.get_cart_by_user_id(current_user.id)

@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from Modules.Addresses.Mapper import to_address_dict
 from Modules.Addresses.Schemas import CreateAddressSchema, UpdateAddressSchema
 from Modules.Addresses.Services import AddressesService, get_addresses_service
-from Modules.Auth.CheckAuth import get_current_user
+from Modules.Auth.CheckAuth import get_current_verified_user
 from Modules.Auth.Models import User
 from Utils.Pagination import PaginationParams, build_pagination_meta
 from Utils.Response import success_response
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/addresses", tags=["addresses"])
 
 @router.get("/")
 async def get_addresses(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
     pagination: PaginationParams = Depends(),
 ) -> JSONResponse:
@@ -32,7 +32,7 @@ async def get_addresses(
 @router.get("/{address_id}")
 async def get_address(
     address_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
     address = await addresses_service.get_address_by_id(current_user.id, address_id)
@@ -46,7 +46,7 @@ async def get_address(
 @router.post("/")
 async def create_address(
     create_address_schema: CreateAddressSchema,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
     address = await addresses_service.create_address(current_user.id, create_address_schema)
@@ -61,7 +61,7 @@ async def create_address(
 async def update_address(
     address_id: int,
     update_address_schema: UpdateAddressSchema,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_verified_user),
     addresses_service: AddressesService = Depends(get_addresses_service),
 ) -> JSONResponse:
     address = await addresses_service.update_address(

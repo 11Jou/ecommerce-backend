@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from Utils.Response import success_response
@@ -54,6 +54,8 @@ async def resend_activation_mail_route(
     user: User = Depends(get_current_user),
     activation_mail_service: IActivationMailService = Depends(get_activation_mail_service),
 ) -> JSONResponse:
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="Account already verified")
     await activation_mail_service.send_activation_mail(user)
     return success_response(
         message="Activation mail resent successfully",
