@@ -6,5 +6,5 @@ Tech Stack
 * **DataBase:** postgresql
 * **Containerization:** Docker & Docker Compose
 
-alembic revision --autogenerate -m "add intent id to payment"
+alembic revision --autogenerate -m "activation token table"
 

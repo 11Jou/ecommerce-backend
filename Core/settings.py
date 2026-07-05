@@ -67,3 +67,49 @@ def get_stripe_secret_key() -> str:
             "Set it as an environment variable or in the project-root `.env` file."
         )
     return key
+
+
+def get_gmail_user() -> str:
+    user = os.getenv("GMAIL_USER")
+    if not user:
+        raise RuntimeError(
+            "GMAIL_USER is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return user
+
+def get_gmail_password() -> str:
+    password = os.getenv("GMAIL_PASSWORD")
+    if not password:
+        raise RuntimeError(
+            "GMAIL_PASSWORD is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return password
+
+def get_gmail_port() -> int:
+    port = os.getenv("GMAIL_PORT")
+    if not port:
+        raise RuntimeError(
+            "GMAIL_PORT is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return int(port)
+
+def get_gmail_server() -> str:
+    server = os.getenv("GMAIL_SERVER")
+    if not server:
+        raise RuntimeError(
+            "GMAIL_SERVER is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return server
+
+def get_domain() -> str:
+    domain = os.getenv("DOMAIN")
+    if not domain:
+        raise RuntimeError(
+            "DOMAIN is not set. "
+            "Set it as an environment variable or in the project-root `.env` file."
+        )
+    return domain

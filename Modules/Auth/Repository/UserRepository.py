@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from Core.Database.AsyncDatabase import get_db
-from .Models import User
+from Modules.Auth.Models import User
 
 
 class IUserRepository(ABC):

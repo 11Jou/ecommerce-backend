@@ -93,8 +93,11 @@ class OrderService:
     ) -> PaginatedResult[Order]:
         return await self.order_repository.get_orders_by_user_id(user_id, page, page_size)
 
-    async def get_order_by_id(self, order_id: int, user_id: int) -> Order:
-        order = await self.order_repository.get_order_by_id(order_id, user_id)
+    async def get_order_by_id(self, order_id: int, user_id: int = None) -> Order:
+        if user_id:
+            order = await self.order_repository.get_order_by_id(order_id, user_id)
+        else:
+            order = await self.order_repository.get_order_by_id(order_id)
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
         return order

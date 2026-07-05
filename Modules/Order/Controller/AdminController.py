@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from fastapi.responses import JSONResponse
 
 from Modules.Auth.CheckAuth import require_role
@@ -22,5 +22,18 @@ async def get_all_orders(
         message="All orders fetched successfully",
         data=[to_order_dict(order) for order in result.items],
         pagination=build_pagination_meta(pagination.page, pagination.page_size, result.total),
+        status_code=200,
+    )
+
+@router.get("/{order_id}")
+async def get_order_by_id(
+    order_id: int = Path(..., description="The ID of the order to get"),
+    current_user: User = Depends(require_role(["admin"])),
+    order_service: OrderService = Depends(get_order_service),
+) -> JSONResponse:
+    result = await order_service.get_order_by_id(order_id)
+    return success_response(
+        message="Order fetched successfully",
+        data=to_order_dict(result),
         status_code=200,
     )

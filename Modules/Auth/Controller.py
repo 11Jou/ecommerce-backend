@@ -6,7 +6,12 @@ from Utils.Response import success_response
 from .CheckAuth import get_current_user
 from .Models import User
 from .Schemas import *
-from .Services import AuthService, get_auth_service
+from .Services import (
+    AuthService,
+    IActivationMailService,
+    get_activation_mail_service,
+    get_auth_service,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -15,8 +20,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register_user_route(
     user: RegisterUser,
     auth_service: AuthService = Depends(get_auth_service),
+    activation_mail_service: IActivationMailService = Depends(get_activation_mail_service),
 ) -> JSONResponse:
     new_user = await auth_service.register_user(user)
+    await activation_mail_service.send_activation_mail(new_user)
     body = UserResponse(
         id=new_user.id,
         email=new_user.email,
@@ -28,6 +35,28 @@ async def register_user_route(
         data=body.model_dump(mode="json"),
         message="Registered successfully",
         status_code=201,
+    )
+
+
+@router.post("/activate")
+async def activate_user_route(
+    token: str,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> JSONResponse:
+    await auth_service.activate_user(token)
+    return success_response(
+        message="User activated successfully",
+    )
+
+
+@router.put("/resend-activation-mail")
+async def resend_activation_mail_route(
+    user: User = Depends(get_current_user),
+    activation_mail_service: IActivationMailService = Depends(get_activation_mail_service),
+) -> JSONResponse:
+    await activation_mail_service.send_activation_mail(user)
+    return success_response(
+        message="Activation mail resent successfully",
     )
 
 

@@ -1,55 +1,20 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from fastapi import Depends, HTTPException, status
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+from fastapi import Depends, HTTPException
+from jose import JWTError
 
-from .Models import User
-from .Repository import IUserRepository, get_user_repository
-from .Schemas import ChangePassword, RegisterUser, Token, UserLogin
-
-
-class SecurityService:
-    def __init__(self):
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        self.secret_key = "mG/xJYdH/b3bR9K2FJqaVUTAvrie2dQxdytkDQPUfGo="
-        self.algorithm = "HS256"
-        self.access_token_expire_minutes = 30
-        self.refresh_token_expire_minutes = 60 * 24 * 30
-
-    def hash_password(self, password: str) -> str:
-        return self.pwd_context.hash(password)
-
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return self.pwd_context.verify(plain_password, hashed_password)
-
-    def create_access_token(self, data: dict) -> str:
-        to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
-
-    def create_refresh_token(self, data: dict) -> str:
-        to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=self.refresh_token_expire_minutes)
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
-
-    def decode_token(self, token: str) -> dict:
-        try:
-            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-        except JWTError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-
-
-def get_security_service() -> SecurityService:
-    return SecurityService()
+from Modules.Auth.Models import ActivationToken, User
+from Modules.Auth.Repository import IUserRepository, get_user_repository
+from Modules.Auth.Schemas import ChangePassword, RegisterUser, Token, UserLogin
+from Modules.Auth.Services.SecurityService import SecurityService, get_security_service
+from Modules.Auth.Repository import ITokenRepository, get_token_repository
 
 
 class AuthService:
-    def __init__(self, user_repository: IUserRepository, security_service: SecurityService):
+    def __init__(self, user_repository: IUserRepository, security_service: SecurityService, token_repository: ITokenRepository):
         self.user_repository = user_repository
         self.security_service = security_service
+        self.token_repository = token_repository
 
     async def get_user_by_email(self, email: str) -> User | None:
         return await self.user_repository.get_user_by_email(email)
@@ -117,9 +82,33 @@ class AuthService:
         current_user.password = self.security_service.hash_password(data.new_password)
         return await self.user_repository.update_user(current_user)
 
+    async def create_activation_token(self, user: User) -> ActivationToken:
+        token = self.security_service.generate_secret_token()
+        activation_token = ActivationToken(
+            token=token,
+            user_id=user.id,
+        )
+        return await self.token_repository.create_token(activation_token)
+
+    async def activate_user(self, token: str) -> User:
+        activation_token = await self.token_repository.get_token_by_token(token)
+        if not activation_token:
+            raise HTTPException(status_code=404, detail="Activation token not found")
+        if activation_token.is_used:
+            raise HTTPException(status_code=400, detail="Activation token already used")
+        if activation_token.expires_at < datetime.now():
+            raise HTTPException(status_code=400, detail="Activation token expired")
+
+        user = activation_token.user
+        user.is_verified = True
+        activation_token.is_used = True
+        await self.token_repository.update_token(activation_token)
+        return user
+
 
 def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),
     security_service: SecurityService = Depends(get_security_service),
+    token_repository: ITokenRepository = Depends(get_token_repository),
 ) -> AuthService:
-    return AuthService(user_repository, security_service)
+    return AuthService(user_repository, security_service, token_repository)

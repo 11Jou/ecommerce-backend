@@ -8,7 +8,7 @@ celery_app = Celery(
     "Core",
     broker=get_celery_broker_url(),
     backend=get_celery_backend_url(),
-    include=["Tasks.test", "Tasks.CancelPendingOrder"],
+    include=["Tasks.test", "Tasks.CancelPendingOrder", "Tasks.SendActivation"],
 )
 
 celery_app.conf.beat_schedule = {

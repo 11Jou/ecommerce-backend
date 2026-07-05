@@ -54,3 +54,11 @@ class ChangePassword(BaseModel):
     old_password: str
     new_password: str
     confirm_new_password: str
+
+class ActivationToken(BaseModel):
+    token: str
+    user_id: int
+    expires_at: datetime
+    is_used: bool
+    created_at: datetime
+    updated_at: datetime

@@ -24,7 +24,7 @@ class IOrderRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_order_by_id(self, order_id: int, user_id: int) -> Order:
+    async def get_order_by_id(self, order_id: int, user_id: int = None) -> Order:
         pass
 
     @abstractmethod
@@ -93,18 +93,21 @@ class OrderRepository(IOrderRepository):
         items = list(result.unique().scalars().all())
         return PaginatedResult(items=items, total=total)
 
-    async def get_order_by_id(self, order_id: int, user_id: int) -> Order | None:
+    async def get_order_by_id(self, order_id: int, user_id: int = None) -> Order | None:
         items_loader = joinedload(Order.items)
         product_loader = items_loader.joinedload(OrderItem.product)
         category_loader = product_loader.joinedload(Product.category)
         store_loader = items_loader.joinedload(OrderItem.store)
         address_loader = joinedload(Order.address)
         user_loader = joinedload(Order.user)
-        result = await self.db.execute(
+        stmt = (
             select(Order)
             .options(items_loader, product_loader, category_loader, store_loader, address_loader, user_loader)
-            .where(Order.id == order_id, Order.user_id == user_id)
+            .where(Order.id == order_id)
         )
+        if user_id:
+            stmt = stmt.where(Order.user_id == user_id)
+        result = await self.db.execute(stmt)
         return result.unique().scalars().first()
 
     async def check_order_by_address_id(self, address_id: int) -> Order | None:

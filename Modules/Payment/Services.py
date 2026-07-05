@@ -5,7 +5,7 @@ from Core.Database.AsyncDatabase import get_db
 from Modules.Order.Models import OrderStatus
 from Modules.Order.Repository.OrderRepository import IOrderRepository, get_order_repository
 from Modules.Payment.Gateways.Factory import OnlinePaymentGatewayFactory
-from Modules.Payment.Models import Payment, PaymentMethod, PaymentStatus
+from Modules.Payment.Models import OnlineProvider, Payment, PaymentMethod, PaymentStatus
 from Modules.Payment.Repository.PaymentRepository import IPaymentRepository, get_payment_repository
 from Modules.Payment.Schemas import PayOrderSchema
 
@@ -51,7 +51,7 @@ class PaymentService:
             order.status = OrderStatus.PENDING_PAYMENT
         await self.db.commit()
 
-    async def pay_order(self, user_id: int, order_id: int, pay_data: PayOrderSchema) -> Payment:
+    async def pay_order(self, user_id: int, order_id: int, online_provider: OnlineProvider) -> Payment:
         order = await self.order_repository.get_order_by_id(order_id, user_id)
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
@@ -62,7 +62,7 @@ class PaymentService:
 
         await self._claim_order_for_payment(order)
 
-        gateway = OnlinePaymentGatewayFactory.create(pay_data.online_provider)
+        gateway = OnlinePaymentGatewayFactory.create(online_provider)
 
         try:
             result = gateway.pay(order.total_amount)
