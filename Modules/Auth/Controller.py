@@ -8,8 +8,9 @@ from .Models import User
 from .Schemas import *
 from .Services import (
     AuthService,
-    IActivationMailService,
+    IMailService,
     get_activation_mail_service,
+    get_reset_password_mail_service,
     get_auth_service,
 )
 
@@ -20,10 +21,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register_user_route(
     user: RegisterUser,
     auth_service: AuthService = Depends(get_auth_service),
-    activation_mail_service: IActivationMailService = Depends(get_activation_mail_service),
+    mail_service: IMailService = Depends(get_activation_mail_service),
 ) -> JSONResponse:
     new_user = await auth_service.register_user(user)
-    await activation_mail_service.send_activation_mail(new_user)
+    await mail_service.send_mail(new_user)
     body = UserResponse(
         id=new_user.id,
         email=new_user.email,
@@ -52,11 +53,11 @@ async def activate_user_route(
 @router.put("/resend-activation-mail")
 async def resend_activation_mail_route(
     user: User = Depends(get_current_user),
-    activation_mail_service: IActivationMailService = Depends(get_activation_mail_service),
+    mail_service: IMailService = Depends(get_activation_mail_service),
 ) -> JSONResponse:
     if user.is_verified:
         raise HTTPException(status_code=400, detail="Account already verified")
-    await activation_mail_service.send_activation_mail(user)
+    await mail_service.send_mail(user)
     return success_response(
         message="Activation mail resent successfully",
     )
